@@ -10,7 +10,7 @@ PanelWindow {
     anchors { bottom: true; left: true; right: true }
     implicitHeight: 180
     color: "transparent"
-    visible: false
+    visible: true
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell"
@@ -22,11 +22,12 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
-            selectorWindow.visible = true
+            slideAnimation.from = selectorWindow.height + 20
             slideAnimation.to = 0
             slideAnimation.start()
         } else {
-            slideAnimation.to = selectorWindow.implicitHeight + 20
+            slideAnimation.from = container.y
+            slideAnimation.to = selectorWindow.height + 20
             slideAnimation.start()
         }
     }
@@ -37,11 +38,6 @@ PanelWindow {
         property: "y"
         duration: 150
         easing.type: Easing.OutExpo
-        onFinished: {
-            if (!active) {
-                selectorWindow.visible = false
-            }
-        }
     }
 
     ListModel {
@@ -86,9 +82,12 @@ PanelWindow {
         height: parent.height
         y: parent.height + 20 // 初期状態は画面外
 
-        // 半透明背景カード
+        // 半透明背景カード (角丸を下に伸ばして画面外へ押し出す)
         Rectangle {
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: parent.height + 16 // 角丸分下にはみ出させる
             color: "#1d2021" // Gruvbox背景
             border.color: "#3c3836"
             border.width: 1

@@ -11,7 +11,7 @@ PanelWindow {
     anchors { bottom: true; left: true; right: true }
     implicitHeight: 480
     color: "transparent"
-    visible: false
+    visible: true
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell"
@@ -22,12 +22,13 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
-            launcherWindow.visible = true
+            slideAnimation.from = launcherWindow.height + 20
             slideAnimation.to = 0
             slideAnimation.start()
             focusTimer.restart()
         } else {
-            slideAnimation.to = launcherWindow.implicitHeight + 20
+            slideAnimation.from = container.y
+            slideAnimation.to = launcherWindow.height + 20
             slideAnimation.start()
         }
     }
@@ -46,11 +47,6 @@ PanelWindow {
         property: "y"
         duration: 150
         easing.type: Easing.OutExpo
-        onFinished: {
-            if (!active) {
-                launcherWindow.visible = false
-            }
-        }
     }
 
     property var allApps: []
