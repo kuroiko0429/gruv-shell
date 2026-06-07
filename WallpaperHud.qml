@@ -1,0 +1,401 @@
+// WallpaperHud.qml
+import Quickshell
+import Quickshell.Wayland
+import Quickshell.Io
+import Quickshell.Services.UPower
+import QtQuick
+import QtQuick.Layouts
+
+PanelWindow {
+    id: wallpaperHud
+    anchors { top: true; bottom: true; left: true; right: true }
+    color: "transparent"
+
+    WlrLayershell.layer: WlrLayer.Background
+    WlrLayershell.namespace: "quickshell"
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    exclusionMode: ExclusionMode.Ignore
+
+    SystemClock { id: sysClock; precision: SystemClock.Minutes }
+
+    // ── システムリソース取得用 ────────────────────────────────────
+    property real _prevIdle:  0
+    property real _prevTotal: 0
+    property int  cpuPercent: 0
+    property real ramGb:      0.0
+    property real ramTotal:   16.0
+
+    Process {
+        id: statsProc
+        command: ["sh", "-c", "head -1 /proc/stat; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let lines = this.text.trim().split("\n")
+                let memTotal = 0, memAvail = 0
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim()
+                    if (!line) continue
+                    if (line.startsWith("cpu ")) {
+                        let p = line.split(/\s+/)
+                        if (p.length < 5) continue
+                        let user    = parseFloat(p[1])
+                        let nice    = parseFloat(p[2])
+                        let system  = parseFloat(p[3])
+                        let idle    = parseFloat(p[4])
+                        let iowait  = parseFloat(p[5]) || 0
+
+                        let totalIdle = idle + iowait
+                        let totalBusy = user + nice + system
+                        let total     = totalIdle + totalBusy
+
+                        let diffTotal = total - wallpaperHud._prevTotal
+                        let diffIdle  = totalIdle - wallpaperHud._prevIdle
+                        if (diffTotal > 0 && wallpaperHud._prevTotal > 0)
+                            wallpaperHud.cpuPercent = Math.round((diffTotal - diffIdle) / diffTotal * 100)
+                        wallpaperHud._prevIdle  = totalIdle
+                        wallpaperHud._prevTotal = total
+                    } else if (line.startsWith("MemTotal:")) {
+                        let m = line.match(/:\s*(\d+)/)
+                        if (m) memTotal = parseInt(m[1])
+                    } else if (line.startsWith("MemAvailable:")) {
+                        let m = line.match(/:\s*(\d+)/)
+                        if (m) memAvail = parseInt(m[1])
+                    }
+                }
+                if (memTotal > 0) {
+                    wallpaperHud.ramTotal = memTotal / 1048576
+                    wallpaperHud.ramGb = (memTotal - memAvail) / 1048576
+                }
+            }
+        }
+    }
+
+    // ── Uptime & RPG レベル ────────────────────────────────────
+    property int playerLevel: 1
+    property int uptimeSecs: 0
+    Process {
+        id: uptimeProc
+        command: ["cat", "/proc/uptime"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let parts = this.text.trim().split(/\s+/)
+                if (parts.length > 0) {
+                    let s = parseFloat(parts[0]) || 0
+                    wallpaperHud.uptimeSecs = Math.round(s)
+                    wallpaperHud.playerLevel = Math.floor(wallpaperHud.uptimeSecs / 3600) + 1
+                }
+            }
+        }
+    }
+
+    // ── バッテリー ───────────────────────────────────────
+    property var batteryDevice: UPower.displayDevice
+    readonly property real batteryPct: (batteryDevice?.percentage ?? 0.0) * 100
+
+    Timer {
+        interval: 3000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: {
+            statsProc.running = true
+            uptimeProc.running = true
+        }
+    }
+
+    // ── カレンダーロジック ───────────────────────────────────────
+    property var daysInMonth: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    function getDays(year, month) {
+        let isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)
+        let days = wallpaperHud.daysInMonth[month]
+        if (month === 1 && isLeap) days = 29
+        return days
+    }
+
+    property var calendarModel: {
+        let now = sysClock.date
+        let year = now.getFullYear()
+        let month = now.getMonth()
+        let today = now.getDate()
+        let firstDay = new Date(year, month, 1).getDay()
+        let days = wallpaperHud.getDays(year, month)
+        
+        let res = []
+        for (let i = 0; i < firstDay; i++) {
+            res.push({ day: 0, isToday: false })
+        }
+        for (let d = 1; d <= days; d++) {
+            res.push({ day: d, isToday: (d === today) })
+        }
+        return res
+    }
+
+    // 壁紙のあみあみ (40px)
+    Canvas {
+        anchors.fill: parent
+        z: -2 // Conkyの背景カードより下に描画されるようにする
+        opacity: 0.1 // 壁紙を邪魔しない淡いグリッド
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+        onPaint: {
+            var ctx = getContext("2d");
+            ctx.reset();
+            ctx.strokeStyle = "#ebdbb2"; // 手前の文字と同系色の極細線
+            ctx.lineWidth = 0.5;
+
+            var step = 40; // グリッドの間隔 (40px)
+
+            // 縦線
+            for (var x = step; x < parent.width; x += step) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, parent.height);
+                ctx.stroke();
+            }
+            // 横線
+            for (var y = step; y < parent.height; y += step) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(parent.width, y);
+                ctx.stroke();
+            }
+        }
+    }
+
+    // ── HUD コーナーブラケット ───────────────────
+    Item {
+        anchors.fill: parent
+        anchors.margins: 40
+        z: -1
+
+        // 左上
+        Rectangle { x: 0; y: 0; width: 24; height: 2; color: "#3c3836" }
+        Rectangle { x: 0; y: 0; width: 2; height: 24; color: "#3c3836" }
+
+        // 右上
+        Rectangle { x: parent.width - 24; y: 0; width: 24; height: 2; color: "#3c3836" }
+        Rectangle { x: parent.width - 2; y: 0; width: 2; height: 24; color: "#3c3836" }
+
+        // 左下
+        Rectangle { x: 0; y: parent.height - 2; width: 24; height: 2; color: "#3c3836" }
+        Rectangle { x: 0; y: parent.height - 24; width: 2; height: 24; color: "#3c3836" }
+
+        // 右下
+        Rectangle { x: parent.width - 24; y: parent.height - 2; width: 24; height: 2; color: "#3c3836" }
+        Rectangle { x: parent.width - 2; y: parent.height - 24; width: 2; height: 24; color: "#3c3836" }
+    }
+
+    // ── メインレイアウト (画面の右側奥に美しく配置) ───────────────
+    Item {
+        anchors {
+            right: parent.right
+            rightMargin: 60
+            top: parent.top
+            topMargin: 100
+            bottom: parent.bottom
+            bottomMargin: 100
+        }
+        width: 320
+
+        // 半透明フロストガラスカード背景
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: -16
+            radius: 16
+            color: Qt.rgba(0.11, 0.12, 0.13, 0.4)
+            border.color: Qt.rgba(255, 255, 255, 0.05)
+            border.width: 1
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 24
+
+            // ① 巨大背景時計
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 4
+
+                Text {
+                    text: Qt.formatDateTime(sysClock.date, "HH:mm")
+                    color: "#ebdbb2"
+                    font.pixelSize: 84
+                    font.bold: true
+                    font.family: "sans-serif"
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: 8
+                    
+                    Rectangle {
+                        width: 8; height: 8; radius: 4
+                        color: "#b8bb26"
+                        
+                        SequentialAnimation on color {
+                            loops: Animation.Infinite
+                            ColorAnimation { to: "#b8bb26"; duration: 800 }
+                            ColorAnimation { to: "transparent"; duration: 800 }
+                        }
+                    }
+
+                    Text {
+                        text: "ZONE SECURE // ONLINE"
+                        color: "#a89984"
+                        font.pixelSize: 10
+                        font.weight: Font.Bold
+                        font.letterSpacing: 1
+                        font.family: "Monospace"
+                    }
+                }
+
+                Text {
+                    text: Qt.formatDateTime(sysClock.date, "yyyy年 MM月dd日 dddd")
+                    color: "#bdae93"
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#a89984"
+            }
+
+            // ② システムステータス
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 14
+
+                // BATTERY
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    RowLayout {
+                        Text { text: "BATTERY"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Item { Layout.fillWidth: true }
+                        Text { text: Math.round(wallpaperHud.batteryPct) + "%"; color: wallpaperHud.batteryPct < 20 ? "#fb4934" : "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                    }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Rectangle {
+                            width: parent.width * (wallpaperHud.batteryPct / 100.0)
+                            height: parent.height; radius: 1.5
+                            color: wallpaperHud.batteryPct < 20 ? "#fb4934" : "#ebdbb2"
+                        }
+                    }
+                }
+
+                // CPU
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    RowLayout {
+                        Text { text: "CPU"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Item { Layout.fillWidth: true }
+                        Text { text: wallpaperHud.cpuPercent + "%"; color: wallpaperHud.cpuPercent > 70 ? "#fabd2f" : "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                    }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Rectangle {
+                            width: parent.width * (wallpaperHud.cpuPercent / 100.0)
+                            height: parent.height; radius: 1.5
+                            color: wallpaperHud.cpuPercent > 70 ? "#fabd2f" : "#ebdbb2"
+                        }
+                    }
+                }
+
+                // RAM
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    RowLayout {
+                        Text { text: "RAM"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Item { Layout.fillWidth: true }
+                        Text { text: wallpaperHud.ramGb.toFixed(1) + "G / " + wallpaperHud.ramTotal.toFixed(0) + "G"; color: "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                    }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Rectangle {
+                            width: parent.width * (wallpaperHud.ramGb / wallpaperHud.ramTotal)
+                            height: parent.height; radius: 1.5
+                            color: "#ebdbb2"
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#a89984"
+            }
+
+            // ③ フラットデスクトップカレンダー
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 12
+
+                Text {
+                    text: "CHRONICLE CALENDAR"
+                    color: "#a89984"
+                    font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 2
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+                    Repeater {
+                        model: ["日", "月", "火", "水", "木", "金", "土"]
+                        delegate: Text {
+                            text: modelData
+                            color: index === 0 ? "#fb4934" : (index === 6 ? "#83a598" : "#bdae93")
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                            horizontalAlignment: Text.AlignHCenter
+                            Layout.fillWidth: true
+                        }
+                    }
+                }
+
+                GridLayout {
+                    columns: 7
+                    Layout.fillWidth: true
+                    rowSpacing: 8
+                    columnSpacing: 0
+
+                    Repeater {
+                        model: wallpaperHud.calendarModel
+                        delegate: Item {
+                            Layout.fillWidth: true
+                            height: 20
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 22; height: 22; radius: 11
+                                color: "transparent"
+                                border.color: "#fabd2f"
+                                border.width: 1
+                                visible: modelData.isToday
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: modelData.day > 0 ? modelData.day : ""
+                                color: modelData.isToday 
+                                    ? "#fabd2f" 
+                                    : (modelData.day > 0 ? "#bdae93" : "transparent")
+                                font.pixelSize: 11
+                                font.weight: modelData.isToday ? Font.Bold : Font.Normal
+                            }
+                        }
+                    }
+                }
+            }
+
+            Item { Layout.fillHeight: true }
+        }
+    }
+}
