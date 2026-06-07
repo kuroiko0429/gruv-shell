@@ -114,10 +114,10 @@ PanelWindow {
         Rectangle {
             id: card
             width: 500
-            height: parent.height - 20
+            height: parent.height - 20 + 16 // Extend by radius
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 10
+            anchors.bottomMargin: -16 // Push bottom corners off-screen
             color: "#1d2021" // Gruvbox Background
             border.color: "#3c3836"
             border.width: 1
@@ -125,7 +125,10 @@ PanelWindow {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 16
+                anchors.topMargin: 16
+                anchors.leftMargin: 16
+                anchors.rightMargin: 16
+                anchors.bottomMargin: 32 // Offset the bottom-margin shift to keep list visible
                 spacing: 12
 
                 // Search Bar

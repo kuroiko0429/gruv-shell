@@ -158,6 +158,18 @@ PanelWindow {
                 model: wallpaperModel
                 clip: true
 
+                WheelHandler {
+                    orientation: Qt.Horizontal | Qt.Vertical
+                    onWheel: (event) => {
+                        let multiplier = 2.5 // Scroll sensitivity multiplier
+                        let delta = event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x
+                        let newX = wallpaperListView.contentX - (delta * multiplier)
+                        let maxX = Math.max(0, wallpaperListView.contentWidth - wallpaperListView.width)
+                        wallpaperListView.contentX = Math.max(0, Math.min(maxX, newX))
+                        event.accepted = true
+                    }
+                }
+
                 delegate: Rectangle {
                     width: 160
                     height: 100
