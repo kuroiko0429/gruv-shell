@@ -5,4 +5,5 @@ ShellRoot {
     StatusBar {}
     WallpaperHud {}
     WallpaperSelector {}
+    AppLauncher {}
 }

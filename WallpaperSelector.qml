@@ -35,8 +35,8 @@ PanelWindow {
         id: slideAnimation
         target: container
         property: "y"
-        duration: 250
-        easing.type: Easing.OutQuad
+        duration: 150
+        easing.type: Easing.OutExpo
         onFinished: {
             if (!active) {
                 selectorWindow.visible = false
@@ -204,7 +204,7 @@ PanelWindow {
                         onEntered: parent.border.color = "#fabd2f"
                         onExited: parent.border.color = "#3c3836"
                         onClicked: {
-                            setWallpaperProc.exec(["awww", "img", model.path, "--transition-type", "grow", "--transition-pos", "0.5,0.5", "--transition-duration", "1"])
+                            setWallpaperProc.exec(["awww", "img", model.path, "--transition-type", "grow", "--transition-pos", "0.5,0.5", "--transition-duration", "0.5"])
                         }
                     }
                 }
