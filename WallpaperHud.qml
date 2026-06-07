@@ -25,9 +25,44 @@ PanelWindow {
     property real ramGb:      0.0
     property real ramTotal:   16.0
 
+    // ディスク容量用
+    property real diskUsedGb: 0.0
+    property real diskTotalGb: 0.0
+    property real diskPercent: 0.0
+
+    // ネットワーク・温度・メモ用
+    property real _prevRx: 0
+    property real _prevTx: 0
+    property string rxSpeedStr: "0.0 KB/s"
+    property string txSpeedStr: "0.0 KB/s"
+    property int cpuTemp: 0
+    property string todoText: ""
+
+    function formatSpeed(bytesPerSec) {
+        if (bytesPerSec < 1024) return Math.round(bytesPerSec) + " B/s"
+        let kb = bytesPerSec / 1024
+        if (kb < 1024) return kb.toFixed(1) + " KB/s"
+        let mb = kb / 1024
+        return mb.toFixed(1) + " MB/s"
+    }
+
+    function formatUptime(totalSecs) {
+        let days = Math.floor(totalSecs / 86400)
+        let hours = Math.floor((totalSecs % 86400) / 3600)
+        let mins = Math.floor((totalSecs % 3600) / 60)
+        
+        let res = ""
+        if (days > 0) res += days + "d "
+        if (hours > 0 || days > 0) res += hours + "h "
+        res += mins + "m"
+        return res
+    }
+
+    readonly property string uptimeStr: formatUptime(uptimeSecs)
+
     Process {
         id: statsProc
-        command: ["sh", "-c", "head -1 /proc/stat; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo"]
+        command: ["sh", "-c", "head -1 /proc/stat; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo; cat /proc/net/dev | grep -v -E '(lo|face|bytes)' | awk '{rx+=$2; tx+=$10} END {print \"net\", rx, tx}'; temp_val=\"\"; for f in /sys/class/thermal/thermal_zone*; do if [ -f \"$f/type\" ] && [ \"$(cat \"$f/type\")\" = \"x86_pkg_temp\" ]; then temp_val=$(cat \"$f/temp\"); break; fi; done; if [ -z \"$temp_val\" ] && [ -f /sys/class/thermal/thermal_zone0/temp ]; then temp_val=$(cat /sys/class/thermal/thermal_zone0/temp); fi; echo \"temp $temp_val\""]
         stdout: StdioCollector {
             onStreamFinished: {
                 let lines = this.text.trim().split("\n")
@@ -60,6 +95,28 @@ PanelWindow {
                     } else if (line.startsWith("MemAvailable:")) {
                         let m = line.match(/:\s*(\d+)/)
                         if (m) memAvail = parseInt(m[1])
+                    } else if (line.startsWith("net ")) {
+                        let p = line.split(/\s+/)
+                        if (p.length >= 3) {
+                            let rx = parseFloat(p[1]) || 0
+                            let tx = parseFloat(p[2]) || 0
+                            if (wallpaperHud._prevRx > 0 && wallpaperHud._prevTx > 0) {
+                                let rxSpeed = (rx - wallpaperHud._prevRx) / 3
+                                let txSpeed = (tx - wallpaperHud._prevTx) / 3
+                                wallpaperHud.rxSpeedStr = wallpaperHud.formatSpeed(Math.max(0, rxSpeed))
+                                wallpaperHud.txSpeedStr = wallpaperHud.formatSpeed(Math.max(0, txSpeed))
+                            }
+                            wallpaperHud._prevRx = rx
+                            wallpaperHud._prevTx = tx
+                        }
+                    } else if (line.startsWith("temp ")) {
+                        let p = line.split(/\s+/)
+                        if (p.length >= 2) {
+                            let rawTemp = parseFloat(p[1]) || 0
+                            if (rawTemp > 0) {
+                                wallpaperHud.cpuTemp = Math.round(rawTemp / 1000)
+                            }
+                        }
                     }
                 }
                 if (memTotal > 0) {
@@ -69,6 +126,8 @@ PanelWindow {
             }
         }
     }
+
+
 
     // ── Uptime & RPG レベル ────────────────────────────────────
     property int playerLevel: 1
@@ -92,11 +151,53 @@ PanelWindow {
     property var batteryDevice: UPower.displayDevice
     readonly property real batteryPct: (batteryDevice?.percentage ?? 0.0) * 100
 
+    Process {
+        id: diskProc
+        command: ["df", "-B1", "/"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let lines = this.text.trim().split("\n")
+                if (lines.length >= 2) {
+                    let parts = lines[1].trim().split(/\s+/)
+                    if (parts.length >= 5) {
+                        let total = parseInt(parts[1]) || 0
+                        let used = parseInt(parts[2]) || 0
+                        if (total > 0) {
+                            wallpaperHud.diskTotalGb = total / 1073741824
+                            wallpaperHud.diskUsedGb = used / 1073741824
+                            wallpaperHud.diskPercent = Math.round(used / total * 100)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Process {
+        id: todoProc
+        command: ["sh", "-c", "[ -f ~/todo.txt ] && cat ~/todo.txt || echo 'No tasks'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                wallpaperHud.todoText = this.text.trim()
+            }
+        }
+    }
+
     Timer {
         interval: 3000; running: true; repeat: true; triggeredOnStart: true
         onTriggered: {
             statsProc.running = true
             uptimeProc.running = true
+        }
+    }
+
+    Timer {
+        interval: 30000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: {
+            diskProc.running = false
+            diskProc.running = true
+            todoProc.running = false
+            todoProc.running = true
         }
     }
 
@@ -256,6 +357,16 @@ PanelWindow {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                 }
+
+                Text {
+                    text: "UPTIME: " + wallpaperHud.uptimeStr
+                    color: "#a89984"
+                    font.pixelSize: 11
+                    font.bold: true
+                    font.family: "Monospace"
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                }
             }
 
             Rectangle {
@@ -295,7 +406,12 @@ PanelWindow {
                     RowLayout {
                         Text { text: "CPU"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
                         Item { Layout.fillWidth: true }
-                        Text { text: wallpaperHud.cpuPercent + "%"; color: wallpaperHud.cpuPercent > 70 ? "#fabd2f" : "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                        Text { 
+                            text: (wallpaperHud.cpuTemp > 0 ? (wallpaperHud.cpuTemp + "°C @ ") : "") + wallpaperHud.cpuPercent + "%"
+                            color: wallpaperHud.cpuPercent > 70 ? "#fabd2f" : "#d5c4a1"
+                            font.pixelSize: 10
+                            font.family: "Monospace" 
+                        }
                     }
                     Rectangle {
                         Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
@@ -322,6 +438,41 @@ PanelWindow {
                             width: parent.width * (wallpaperHud.ramGb / wallpaperHud.ramTotal)
                             height: parent.height; radius: 1.5
                             color: "#ebdbb2"
+                        }
+                    }
+                }
+
+                // DISK
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    RowLayout {
+                        Text { text: "DISK"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Item { Layout.fillWidth: true }
+                        Text { text: wallpaperHud.diskUsedGb.toFixed(1) + "G / " + wallpaperHud.diskTotalGb.toFixed(0) + "G"; color: "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                    }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Rectangle {
+                            width: parent.width * (wallpaperHud.diskPercent / 100.0)
+                            height: parent.height; radius: 1.5
+                            color: "#ebdbb2"
+                        }
+                    }
+                }
+
+                // NETWORK SPEED
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    RowLayout {
+                        Text { text: "NETWORK"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Item { Layout.fillWidth: true }
+                        Text { 
+                            text: "DN " + wallpaperHud.rxSpeedStr + "  UP " + wallpaperHud.txSpeedStr
+                            color: "#d5c4a1"
+                            font.pixelSize: 10
+                            font.family: "Monospace" 
                         }
                     }
                 }
@@ -392,6 +543,35 @@ PanelWindow {
                             }
                         }
                     }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#a89984"
+                visible: wallpaperHud.todoText !== "" && wallpaperHud.todoText !== "No tasks" && wallpaperHud.todoText !== "No tasks"
+            }
+
+            // ④ TODO リスト
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                visible: wallpaperHud.todoText !== "" && wallpaperHud.todoText !== "No tasks" && wallpaperHud.todoText !== "No tasks"
+
+                Text {
+                    text: "TASK DIRECTIVES"
+                    color: "#a89984"
+                    font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 2
+                }
+
+                Text {
+                    text: wallpaperHud.todoText
+                    color: "#d5c4a1"
+                    font.pixelSize: 11
+                    font.family: "Monospace"
+                    lineHeight: 1.4
+                    Layout.fillWidth: true
                 }
             }
 
