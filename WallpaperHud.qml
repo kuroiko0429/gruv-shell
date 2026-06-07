@@ -36,7 +36,78 @@ PanelWindow {
     property string rxSpeedStr: "0.0 KB/s"
     property string txSpeedStr: "0.0 KB/s"
     property int cpuTemp: 0
-    property string todoText: ""
+
+    // ── 天気データ取得 ─────────────────────────────────────
+    property string weatherTemp: ""
+    property string weatherDesc: ""
+    property string weatherHum: ""
+    property string weatherWind: ""
+    property int _weatherRetryCount: 0
+    property int _weatherRetryMax: 3
+
+    Process {
+        id: weatherProc
+        command: ["curl", "-s", "--max-time", "10", "wttr.in?format=j1"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    if (this.text && this.text.trim().length > 0) {
+                        let json = JSON.parse(this.text)
+                        if (json && json.current_condition && json.current_condition.length > 0) {
+                            let cond = json.current_condition[0]
+                            weatherTemp = cond.temp_C || ""
+                            weatherHum = cond.humidity || ""
+                            weatherWind = cond.windspeedKmph || ""
+                            if (cond.weatherDesc && cond.weatherDesc.length > 0) {
+                                weatherDesc = cond.weatherDesc[0].value || ""
+                            }
+                            // 成功: リトライカウントをリセット
+                            wallpaperHud._weatherRetryCount = 0
+                        } else {
+                            wallpaperHud._scheduleWeatherRetry()
+                        }
+                    } else {
+                        wallpaperHud._scheduleWeatherRetry()
+                    }
+                } catch(e) {
+                    console.log("Error parsing weather JSON: ", e)
+                    wallpaperHud._scheduleWeatherRetry()
+                }
+            }
+        }
+    }
+
+    function _scheduleWeatherRetry() {
+        if (_weatherRetryCount < _weatherRetryMax) {
+            _weatherRetryCount++
+            // 指数バックオフ: 30s, 60s, 120s
+            weatherRetryTimer.interval = 30000 * _weatherRetryCount
+            weatherRetryTimer.restart()
+        }
+        // 失敗上限を超えたら30分の通常サイクルに任せる
+    }
+
+    Timer {
+        id: weatherRetryTimer
+        repeat: false
+        running: false
+        onTriggered: {
+            weatherProc.running = false
+            weatherProc.running = true
+        }
+    }
+
+    Timer {
+        interval: 1800000 // 30分ごとに天気を更新
+        running: true
+        repeat: true
+        onTriggered: {
+            wallpaperHud._weatherRetryCount = 0
+            weatherProc.running = false
+            weatherProc.running = true
+        }
+    }
 
     function formatSpeed(bytesPerSec) {
         if (bytesPerSec < 1024) return Math.round(bytesPerSec) + " B/s"
@@ -173,15 +244,7 @@ PanelWindow {
         }
     }
 
-    Process {
-        id: todoProc
-        command: ["sh", "-c", "[ -f ~/todo.txt ] && cat ~/todo.txt || echo 'No tasks'"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                wallpaperHud.todoText = this.text.trim()
-            }
-        }
-    }
+
 
     Timer {
         interval: 3000; running: true; repeat: true; triggeredOnStart: true
@@ -192,12 +255,11 @@ PanelWindow {
     }
 
     Timer {
+        id: diskTimer
         interval: 30000; running: true; repeat: true; triggeredOnStart: true
         onTriggered: {
             diskProc.running = false
             diskProc.running = true
-            todoProc.running = false
-            todoProc.running = true
         }
     }
 
@@ -484,6 +546,56 @@ PanelWindow {
                 color: "#a89984"
             }
 
+            // ②.5 天気ステータス (絵文字なしのクリーンなデザイン)
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                visible: wallpaperHud.weatherTemp !== ""
+
+                Text {
+                    text: "ENVIRONMENTAL WEATHER"
+                    color: "#a89984"
+                    font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 2
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
+                    
+                    Text {
+                        text: wallpaperHud.weatherTemp + "°C"
+                        color: "#ebdbb2"
+                        font.pixelSize: 24
+                        font.bold: true
+                        font.family: "Monospace"
+                    }
+
+                    ColumnLayout {
+                        spacing: 2
+                        Text {
+                            text: wallpaperHud.weatherDesc.toUpperCase()
+                            color: "#fabd2f"
+                            font.pixelSize: 11
+                            font.bold: true
+                            font.family: "Monospace"
+                        }
+                        Text {
+                            text: "WIND: " + wallpaperHud.weatherWind + " km/h  |  HUMIDITY: " + wallpaperHud.weatherHum + "%"
+                            color: "#a89984"
+                            font.pixelSize: 9
+                            font.family: "Monospace"
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#a89984"
+                visible: wallpaperHud.weatherTemp !== ""
+            }
+
             // ③ フラットデスクトップカレンダー
             ColumnLayout {
                 Layout.fillWidth: true
@@ -546,34 +658,7 @@ PanelWindow {
                 }
             }
 
-            Rectangle {
-                Layout.fillWidth: true
-                height: 1
-                color: "#a89984"
-                visible: wallpaperHud.todoText !== "" && wallpaperHud.todoText !== "No tasks" && wallpaperHud.todoText !== "No tasks"
-            }
 
-            // ④ TODO リスト
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                visible: wallpaperHud.todoText !== "" && wallpaperHud.todoText !== "No tasks" && wallpaperHud.todoText !== "No tasks"
-
-                Text {
-                    text: "TASK DIRECTIVES"
-                    color: "#a89984"
-                    font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 2
-                }
-
-                Text {
-                    text: wallpaperHud.todoText
-                    color: "#d5c4a1"
-                    font.pixelSize: 11
-                    font.family: "Monospace"
-                    lineHeight: 1.4
-                    Layout.fillWidth: true
-                }
-            }
 
             Item { Layout.fillHeight: true }
         }

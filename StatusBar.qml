@@ -15,9 +15,59 @@ PanelWindow {
     }
     
     margins.top: 0
-    implicitWidth: 1400
+    implicitWidth: 1500
     implicitHeight: 35
     color: "transparent"
+
+    // --- パワープロファイル制御 ---
+    property string activePowerProfile: "balanced"
+
+    Process {
+        id: getPowerProfileProc
+        command: ["powerprofilesctl", "get"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                activePowerProfile = this.text.trim()
+            }
+        }
+    }
+
+    Process {
+        id: setPowerProfileProc
+    }
+
+    Timer {
+        interval: 10000 // 10秒ごとに同期
+        running: true
+        repeat: true
+        onTriggered: {
+            getPowerProfileProc.running = false
+            getPowerProfileProc.running = true
+        }
+    }
+
+    function togglePowerProfile() {
+        let nextProfile = "balanced"
+        let msg = ""
+        if (activePowerProfile === "power-saver") {
+            nextProfile = "balanced"
+            msg = "「標準 (Balanced)」に切り替えました"
+        } else if (activePowerProfile === "balanced") {
+            nextProfile = "performance"
+            msg = "「パフォーマンス (Performance)」に切り替えました"
+        } else {
+            nextProfile = "power-saver"
+            msg = "「省電力 (Power Saver)」に切り替えました"
+        }
+
+        // プロファイルをセットし、直後に通知を送る
+        let cmd = "powerprofilesctl set " + nextProfile + " && notify-send -h string:x-canonical-private-synchronous:power-profile -u low '電源プロファイル' '" + msg + "'"
+        setPowerProfileProc.exec(["sh", "-c", cmd])
+
+        // 状態をローカルで即時反映し、再度同期プロセスを回す
+        activePowerProfile = nextProfile
+    }
 
     // Mpris プレイヤーの選定
     property var activePlayer: {
@@ -340,6 +390,39 @@ PanelWindow {
                     color: "#fbf1c7"
                     font.bold: true
                     font.pixelSize: 12
+                }
+            }
+
+            // パワープロファイル
+            Rectangle {
+                color: "#282828"
+                radius: 6
+                implicitWidth: pwrText.implicitWidth + 20
+                implicitHeight: 24
+
+                Text {
+                    id: pwrText
+                    anchors.centerIn: parent
+                    text: {
+                        if (activePowerProfile === "power-saver") return "SAVER"
+                        if (activePowerProfile === "balanced") return "BALANCED"
+                        if (activePowerProfile === "performance") return "PERF"
+                        return "PWR --"
+                    }
+                    color: {
+                        if (activePowerProfile === "power-saver") return "#b8bb26" // Gruvbox Green
+                        if (activePowerProfile === "balanced") return "#83a598" // Gruvbox Blue
+                        if (activePowerProfile === "performance") return "#fb4934" // Gruvbox Red
+                        return "#fbf1c7"
+                    }
+                    font.bold: true
+                    font.pixelSize: 12
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: togglePowerProfile()
                 }
             }
 

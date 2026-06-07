@@ -10,11 +10,11 @@ PanelWindow {
     anchors { bottom: true; left: true; right: true }
     implicitHeight: 180
     color: "transparent"
-    visible: true
+    visible: false
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell"
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
     exclusionMode: ExclusionMode.Ignore
 
     // 制御変数
@@ -22,9 +22,11 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
+            selectorWindow.visible = true
             slideAnimation.from = selectorWindow.height + 20
             slideAnimation.to = 0
             slideAnimation.start()
+            wallpaperListView.forceActiveFocus()
         } else {
             slideAnimation.from = container.y
             slideAnimation.to = selectorWindow.height + 20
@@ -38,6 +40,11 @@ PanelWindow {
         property: "y"
         duration: 150
         easing.type: Easing.OutExpo
+        onFinished: {
+            if (!active) {
+                selectorWindow.visible = false
+            }
+        }
     }
 
     ListModel {
@@ -156,6 +163,44 @@ PanelWindow {
                 spacing: 12
                 model: wallpaperModel
                 clip: true
+                focus: selectorWindow.active
+
+                highlightMoveDuration: 120
+                highlightResizeDuration: 120
+
+                Keys.onEscapePressed: (event) => {
+                    selectorWindow.active = false
+                    event.accepted = true
+                }
+
+                Keys.onLeftPressed: (event) => {
+                    let step = (event.modifiers & Qt.ShiftModifier) ? 5 : 1
+                    let newIndex = Math.max(0, currentIndex - step)
+                    currentIndex = newIndex
+                    positionViewAtIndex(currentIndex, ListView.Contain)
+                    event.accepted = true
+                }
+                Keys.onRightPressed: (event) => {
+                    let step = (event.modifiers & Qt.ShiftModifier) ? 5 : 1
+                    let newIndex = Math.min(model.count - 1, currentIndex + step)
+                    currentIndex = newIndex
+                    positionViewAtIndex(currentIndex, ListView.Contain)
+                    event.accepted = true
+                }
+                Keys.onReturnPressed: (event) => {
+                    if (currentItem) {
+                        let item = model.get(currentIndex)
+                        setWallpaperProc.exec(["awww", "img", item.path, "--transition-type", "grow", "--transition-pos", "0.5,0.5", "--transition-duration", "0.5"])
+                    }
+                    event.accepted = true
+                }
+                Keys.onSpacePressed: (event) => {
+                    if (currentItem) {
+                        let item = model.get(currentIndex)
+                        setWallpaperProc.exec(["awww", "img", item.path, "--transition-type", "grow", "--transition-pos", "0.5,0.5", "--transition-duration", "0.5"])
+                    }
+                    event.accepted = true
+                }
 
                 WheelHandler {
                     orientation: Qt.Horizontal | Qt.Vertical
@@ -170,11 +215,12 @@ PanelWindow {
                 }
 
                 delegate: Rectangle {
+                    id: delegateRect
                     width: 160
                     height: 100
                     radius: 8
                     color: "#282828"
-                    border.color: "#3c3836"
+                    border.color: ListView.isCurrentItem ? "#fe8019" : (delegateMa.containsMouse ? "#fabd2f" : "#3c3836")
                     border.width: 2
 
                     // 壁紙のサムネイル (メモリ節約のためsourceSizeを小さく指定)
@@ -209,12 +255,12 @@ PanelWindow {
                     }
 
                     MouseArea {
+                        id: delegateMa
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         hoverEnabled: true
-                        onEntered: parent.border.color = "#fabd2f"
-                        onExited: parent.border.color = "#3c3836"
                         onClicked: {
+                            wallpaperListView.currentIndex = index
                             setWallpaperProc.exec(["awww", "img", model.path, "--transition-type", "grow", "--transition-pos", "0.5,0.5", "--transition-duration", "0.5"])
                         }
                     }

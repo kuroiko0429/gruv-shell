@@ -1,4 +1,4 @@
-// AppLauncher.qml
+// ClipboardSelector.qml
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
@@ -7,7 +7,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 PanelWindow {
-    id: launcherWindow
+    id: clipboardWindow
     anchors { bottom: true; left: true; right: true }
     implicitHeight: 480
     color: "transparent"
@@ -22,14 +22,15 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
-            launcherWindow.visible = true
-            slideAnimation.from = launcherWindow.height + 20
+            clipboardWindow.visible = true
+            loadHistory()
+            slideAnimation.from = clipboardWindow.height + 20
             slideAnimation.to = 0
             slideAnimation.start()
             focusTimer.restart()
         } else {
             slideAnimation.from = container.y
-            slideAnimation.to = launcherWindow.height + 20
+            slideAnimation.to = clipboardWindow.height + 20
             slideAnimation.start()
         }
     }
@@ -50,62 +51,80 @@ PanelWindow {
         easing.type: Easing.OutExpo
         onFinished: {
             if (!active) {
-                launcherWindow.visible = false
+                clipboardWindow.visible = false
             }
         }
     }
 
-    property var allApps: []
+    property var allItems: []
 
     Process {
-        id: appFetcher
-        running: true
-        command: ["python3", "/home/kuroiko/.config/quickshell/kuroiko-bar/app_fetcher.py"]
+        id: listFetcher
+        command: ["cliphist", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
-                try {
-                    if (this.text && this.text.trim().length > 0) {
-                        launcherWindow.allApps = JSON.parse(this.text);
-                        filterApps("");
+                let lines = this.text.trim().split("\n")
+                let items = []
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim()
+                    if (line) {
+                        let tabIdx = line.indexOf("\t")
+                        if (tabIdx !== -1) {
+                            let id = line.substring(0, tabIdx)
+                            let content = line.substring(tabIdx + 1)
+                            items.push({ "raw": line, "id": id, "content": content })
+                        } else {
+                            items.push({ "raw": line, "id": "", "content": line })
+                        }
                     }
-                } catch(e) {
-                    console.log("Error parsing apps list: ", e);
                 }
+                clipboardWindow.allItems = items
+                filterItems("")
             }
         }
     }
 
     ListModel {
-        id: appModel
+        id: clipboardModel
     }
 
-    function filterApps(query) {
-        appModel.clear();
-        let q = query.toLowerCase().trim();
-        for (let i = 0; i < allApps.length; i++) {
-            if (allApps[i].name.toLowerCase().includes(q)) {
-                appModel.append(allApps[i]);
+    function loadHistory() {
+        listFetcher.running = false
+        listFetcher.running = true
+    }
+
+    function filterItems(query) {
+        clipboardModel.clear()
+        let q = query.toLowerCase().trim()
+        for (let i = 0; i < allItems.length; i++) {
+            if (allItems[i].content.toLowerCase().includes(q)) {
+                clipboardModel.append(allItems[i])
             }
         }
-        if (appModel.count > 0) {
-            appListView.currentIndex = 0;
+        if (clipboardModel.count > 0) {
+            historyListView.currentIndex = 0
         } else {
-            appListView.currentIndex = -1;
+            historyListView.currentIndex = -1
         }
     }
 
-    function launchApp(execStr) {
-        launcherWindow.active = false
-        // %u, %f, %U, %F, %i, %c, %k などの .desktop プレースホルダーを除去
-        let cmd = execStr.replace(/%[uUfFiIcCkbdDnN]/g, "").trim()
-        // shで実行することでスペース区切りの複合コマンドも扱える
-        Quickshell.execDetached(["sh", "-c", cmd])
+    function copyAndClose(rawItem) {
+        clipboardWindow.active = false
+        let shellCmd = "printf '%s' " + quoteShell(rawItem) + " | cliphist decode | wl-copy"
+        Quickshell.execDetached(["sh", "-c", shellCmd])
+        
+        let notifyCmd = "notify-send -h string:x-canonical-private-synchronous:clipboard -u low 'クリップボード' '選択した履歴をコピーしました'"
+        Quickshell.execDetached(["sh", "-c", notifyCmd])
+    }
+
+    function quoteShell(str) {
+        return "'" + str.replace(/'/g, "'\\''") + "'"
     }
 
     IpcHandler {
-        target: "appLauncher"
+        target: "clipboardSelector"
         function toggle(): void {
-            launcherWindow.active = !launcherWindow.active
+            clipboardWindow.active = !clipboardWindow.active
         }
     }
 
@@ -118,11 +137,11 @@ PanelWindow {
         // Central card containing search and results
         Rectangle {
             id: card
-            width: 500
+            width: 600
             height: parent.height - 20 + 16 // Extend by radius
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: -16 // Push bottom corners off-screen
+            anchors.bottomMargin: -16 // Margin 0, flat bottom corners
             color: "#1d2021" // Gruvbox Background
             border.color: "#3c3836"
             border.width: 1
@@ -153,7 +172,7 @@ PanelWindow {
                         spacing: 8
 
                         Text {
-                            text: "🔍"
+                            text: "📋"
                             color: "#a89984"
                             font.pixelSize: 14
                         }
@@ -166,114 +185,89 @@ PanelWindow {
                             color: "#ebdbb2"
                             font.pixelSize: 14
                             font.family: "Monospace"
-                            placeholderText: "Search Applications..."
+                            placeholderText: "Search Clipboard History..."
                             placeholderTextColor: "#7c6f64"
                             verticalAlignment: TextInput.AlignVCenter
 
-                            onTextChanged: filterApps(text)
+                            onTextChanged: filterItems(text)
 
                             Keys.onDownPressed: (event) => {
-                                if (appListView.currentIndex < appModel.count - 1) {
-                                    appListView.currentIndex++;
-                                    appListView.positionViewAtIndex(appListView.currentIndex, ListView.Contain)
+                                if (historyListView.currentIndex < clipboardModel.count - 1) {
+                                    historyListView.currentIndex++;
                                 }
                                 event.accepted = true;
                             }
                             Keys.onUpPressed: (event) => {
-                                if (appListView.currentIndex > 0) {
-                                    appListView.currentIndex--;
-                                    appListView.positionViewAtIndex(appListView.currentIndex, ListView.Contain)
+                                if (historyListView.currentIndex > 0) {
+                                    historyListView.currentIndex--;
                                 }
                                 event.accepted = true;
                             }
                             Keys.onReturnPressed: (event) => {
-                                if (appListView.currentIndex >= 0 && appListView.currentIndex < appModel.count) {
-                                    launchApp(appModel.get(appListView.currentIndex).exec);
+                                if (historyListView.currentIndex >= 0 && historyListView.currentIndex < clipboardModel.count) {
+                                    copyAndClose(clipboardModel.get(historyListView.currentIndex).raw);
                                 }
                                 event.accepted = true;
                             }
                             Keys.onEscapePressed: (event) => {
-                                launcherWindow.active = false
+                                clipboardWindow.active = false
                                 event.accepted = true;
                             }
                         }
                     }
                 }
 
-                // Application List
+                // History List
                 ListView {
-                    id: appListView
+                    id: historyListView
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
-                    model: appModel
+                    model: clipboardModel
                     spacing: 4
 
                     highlightMoveDuration: 120
                     highlightResizeDuration: 120
 
+                    onCurrentIndexChanged: {
+                        if (currentIndex >= 0) {
+                            positionViewAtIndex(currentIndex, ListView.Contain)
+                        }
+                    }
+
                     delegate: Rectangle {
                         width: ListView.view.width
-                        height: 50
-                        radius: 8
-                        color: index === appListView.currentIndex ? "#282828" : "transparent"
-                        border.color: index === appListView.currentIndex ? "#fabd2f" : "transparent"
+                        height: 40
+                        radius: 6
+                        color: index === historyListView.currentIndex ? "#282828" : "transparent"
+                        border.color: index === historyListView.currentIndex ? "#fabd2f" : "transparent"
                         border.width: 1
+
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 6
+                            anchors.margins: 4
                             anchors.leftMargin: 12
                             spacing: 12
 
-                            // Icon/Fallback
-                            Rectangle {
-                                width: 32
-                                height: 32
-                                radius: 6
-                                color: "#3c3836"
-                                clip: true
-
-                                Image {
-                                    id: appIcon
-                                    anchors.centerIn: parent
-                                    width: 24
-                                    height: 24
-                                    source: model.icon
-                                        ? (model.icon.startsWith("/")
-                                            ? "file://" + model.icon
-                                            : "image://icon/" + model.icon)
-                                        : ""
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                    visible: status === Image.Ready
-
-                                    onStatusChanged: {
-                                        if (status === Image.Error && model.icon && !model.icon.startsWith("/")) {
-                                            // XDGアイコン名での読み込みが失敗した場合、
-                                            // フルパス検索にフォールバックしてからあきらめる
-                                            source = ""
-                                        }
-                                    }
-                                }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: model.name ? model.name.substring(0, 1).toUpperCase() : "?"
-                                    color: "#ebdbb2"
-                                    font.bold: true
-                                    font.pixelSize: 14
-                                    visible: appIcon.status !== Image.Ready
-                                }
+                            Text {
+                                text: (index + 1) + "."
+                                color: index === historyListView.currentIndex ? "#fabd2f" : "#7c6f64"
+                                font.pixelSize: 12
+                                font.bold: true
+                                font.family: "Monospace"
                             }
 
-                            // Application Name
                             Text {
                                 Layout.fillWidth: true
-                                text: model.name
-                                color: "#ebdbb2"
+                                text: {
+                                    let c = model.content
+                                    if (c.startsWith("<meta")) return "[Image / Binary Data]"
+                                    return c
+                                }
+                                color: index === historyListView.currentIndex ? "#ebdbb2" : "#a89984"
                                 font.pixelSize: 13
-                                font.bold: index === appListView.currentIndex
+                                font.bold: index === historyListView.currentIndex
                                 font.family: "Monospace"
                                 elide: Text.ElideRight
                             }
@@ -283,8 +277,8 @@ PanelWindow {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onEntered: appListView.currentIndex = index
-                            onClicked: launchApp(model.exec)
+                            onEntered: historyListView.currentIndex = index
+                            onClicked: copyAndClose(model.raw)
                         }
                     }
                 }

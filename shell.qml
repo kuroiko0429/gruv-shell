@@ -6,4 +6,7 @@ ShellRoot {
     WallpaperHud {}
     WallpaperSelector {}
     AppLauncher {}
+    ClipboardSelector {}
+    Powermenu {}
+    ScreenCorners {}
 }
