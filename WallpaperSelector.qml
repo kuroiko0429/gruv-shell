@@ -53,7 +53,7 @@ PanelWindow {
 
     Process {
         id: findWallpapers
-        command: ["sh", "-c", "find /home/kuroiko/画像/wallpapers -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.webp' \\) | sort"]
+        command: ["sh", "-c", "find /home/kuroiko/Pictures/Wallpapers -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.webp' \\) | sort"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -89,21 +89,48 @@ PanelWindow {
         height: parent.height
         y: parent.height + 20 // 初期状態は画面外
 
-        // 半透明背景カード (角丸を下に伸ばして画面外へ押し出す)
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            height: parent.height + 16 // 角丸分下にはみ出させる
-            color: "#1d2021" // Gruvbox背景
-            border.color: "#3c3836"
-            border.width: 1
-            radius: 16
+        // 半透明背景カード (凹型角丸)
+        Canvas {
+            id: card
+            anchors.fill: parent
+
+            onWidthChanged: requestPaint()
+            onHeightChanged: requestPaint()
+
+            Connections {
+                target: theme
+                function onModeChanged() {
+                    card.requestPaint();
+                }
+            }
+
+            onPaint: {
+                var ctx = getContext("2d");
+                ctx.reset();
+                ctx.fillStyle = theme.bg0_hard; // Gruvbox背景
+                
+                var R = 16; // radius
+                var w = width;
+                var h = height;
+
+                ctx.beginPath();
+                ctx.moveTo(0, h);
+                ctx.lineTo(0, 0);
+                ctx.arc(R, 0, R, 1.0 * Math.PI, 0.5 * Math.PI, true);
+                ctx.lineTo(w - R, R);
+                ctx.arc(w - R, 0, R, 0.5 * Math.PI, 0, true);
+                ctx.lineTo(w, h);
+                ctx.closePath();
+                ctx.fill();
+            }
         }
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 16
+            anchors.topMargin: 32 // 16 + 16 (concave corner offset)
+            anchors.bottomMargin: 16
+            anchors.leftMargin: 32 // 16 + 16 (concave corner offset)
+            anchors.rightMargin: 32 // 16 + 16 (concave corner offset)
             spacing: 8
 
             // ヘッダー行
@@ -113,7 +140,7 @@ PanelWindow {
 
                 Text {
                     text: "WALLPAPER SELECTOR"
-                    color: "#a89984"
+                    color: theme.fg4
                     font.pixelSize: 12
                     font.bold: true
                     font.letterSpacing: 2
@@ -122,7 +149,7 @@ PanelWindow {
 
                 Text {
                     text: wallpaperModel.count + " WALLPAPERS AVAILABLE"
-                    color: "#7c6f64"
+                    color: theme.fg4
                     font.pixelSize: 10
                     font.bold: true
                     font.family: "Monospace"
@@ -135,13 +162,13 @@ PanelWindow {
                     width: 20
                     height: 20
                     radius: 4
-                    color: "#3c3836"
+                    color: theme.bg1
                     Layout.alignment: Qt.AlignRight
 
                     Text {
                         anchors.centerIn: parent
                         text: "X"
-                        color: "#fb4934"
+                        color: theme.red
                         font.bold: true
                         font.pixelSize: 10
                     }
@@ -219,8 +246,8 @@ PanelWindow {
                     width: 160
                     height: 100
                     radius: 8
-                    color: "#282828"
-                    border.color: ListView.isCurrentItem ? "#fe8019" : (delegateMa.containsMouse ? "#fabd2f" : "#3c3836")
+                    color: theme.bg0
+                    border.color: ListView.isCurrentItem ? theme.orange : (delegateMa.containsMouse ? theme.yellow : theme.bg1)
                     border.width: 2
 
                     // 壁紙のサムネイル (メモリ節約のためsourceSizeを小さく指定)
@@ -239,14 +266,14 @@ PanelWindow {
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: 20
-                        color: Qt.rgba(0.11, 0.12, 0.13, 0.8)
+                        color: Qt.rgba(theme.bg0.r, theme.bg0.g, theme.bg0.b, 0.8)
                         radius: 8
 
                         Text {
                             anchors.centerIn: parent
                             width: parent.width - 10
                             text: model.category + " / " + model.name
-                            color: "#ebdbb2"
+                            color: theme.fg1
                             font.pixelSize: 8
                             elide: Text.ElideRight
                             horizontalAlignment: Text.AlignHCenter

@@ -47,7 +47,7 @@ PanelWindow {
 
     Process {
         id: weatherProc
-        command: ["curl", "-s", "--max-time", "10", "wttr.in?format=j1"]
+        command: ["curl", "-s", "--max-time", "10", "wttr.in/Nishinopporo?format=j1"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -292,31 +292,46 @@ PanelWindow {
 
     // 壁紙のあみあみ (40px)
     Canvas {
-        anchors.fill: parent
+        id: gridCanvas
+        anchors {
+            top: parent.top
+            topMargin: 35
+            bottom: parent.bottom
+            left: parent.left
+            right: parent.right
+        }
         z: -2 // Conkyの背景カードより下に描画されるようにする
         opacity: 0.1 // 壁紙を邪魔しない淡いグリッド
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
+
+        Connections {
+            target: theme
+            function onModeChanged() {
+                gridCanvas.requestPaint();
+            }
+        }
+
         onPaint: {
             var ctx = getContext("2d");
             ctx.reset();
-            ctx.strokeStyle = "#ebdbb2"; // 手前の文字と同系色の極細線
+            ctx.strokeStyle = theme.fg1; // 手前の文字と同系色の極細線
             ctx.lineWidth = 0.5;
 
             var step = 40; // グリッドの間隔 (40px)
 
             // 縦線
-            for (var x = step; x < parent.width; x += step) {
+            for (var x = step; x < width; x += step) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
-                ctx.lineTo(x, parent.height);
+                ctx.lineTo(x, height);
                 ctx.stroke();
             }
             // 横線
-            for (var y = step; y < parent.height; y += step) {
+            for (var y = step; y < height; y += step) {
                 ctx.beginPath();
                 ctx.moveTo(0, y);
-                ctx.lineTo(parent.width, y);
+                ctx.lineTo(width, y);
                 ctx.stroke();
             }
         }
@@ -324,25 +339,33 @@ PanelWindow {
 
     // ── HUD コーナーブラケット ───────────────────
     Item {
-        anchors.fill: parent
-        anchors.margins: 40
+        anchors {
+            top: parent.top
+            topMargin: 75 // 35px statusbar offset + 40px margin
+            bottom: parent.bottom
+            bottomMargin: 40
+            left: parent.left
+            leftMargin: 40
+            right: parent.right
+            rightMargin: 40
+        }
         z: -1
 
         // 左上
-        Rectangle { x: 0; y: 0; width: 24; height: 2; color: "#3c3836" }
-        Rectangle { x: 0; y: 0; width: 2; height: 24; color: "#3c3836" }
+        Rectangle { x: 0; y: 0; width: 24; height: 2; color: theme.bg1 }
+        Rectangle { x: 0; y: 0; width: 2; height: 24; color: theme.bg1 }
 
         // 右上
-        Rectangle { x: parent.width - 24; y: 0; width: 24; height: 2; color: "#3c3836" }
-        Rectangle { x: parent.width - 2; y: 0; width: 2; height: 24; color: "#3c3836" }
+        Rectangle { x: parent.width - 24; y: 0; width: 24; height: 2; color: theme.bg1 }
+        Rectangle { x: parent.width - 2; y: 0; width: 2; height: 24; color: theme.bg1 }
 
         // 左下
-        Rectangle { x: 0; y: parent.height - 2; width: 24; height: 2; color: "#3c3836" }
-        Rectangle { x: 0; y: parent.height - 24; width: 2; height: 24; color: "#3c3836" }
+        Rectangle { x: 0; y: parent.height - 2; width: 24; height: 2; color: theme.bg1 }
+        Rectangle { x: 0; y: parent.height - 24; width: 2; height: 24; color: theme.bg1 }
 
         // 右下
-        Rectangle { x: parent.width - 24; y: parent.height - 2; width: 24; height: 2; color: "#3c3836" }
-        Rectangle { x: parent.width - 2; y: parent.height - 24; width: 2; height: 24; color: "#3c3836" }
+        Rectangle { x: parent.width - 24; y: parent.height - 2; width: 24; height: 2; color: theme.bg1 }
+        Rectangle { x: parent.width - 2; y: parent.height - 24; width: 2; height: 24; color: theme.bg1 }
     }
 
     // ── メインレイアウト (画面の右側奥に美しく配置) ───────────────
@@ -351,7 +374,7 @@ PanelWindow {
             right: parent.right
             rightMargin: 60
             top: parent.top
-            topMargin: 100
+            topMargin: 130
             bottom: parent.bottom
             bottomMargin: 100
         }
@@ -362,8 +385,8 @@ PanelWindow {
             anchors.fill: parent
             anchors.margins: -16
             radius: 16
-            color: Qt.rgba(0.11, 0.12, 0.13, 0.4)
-            border.color: Qt.rgba(255, 255, 255, 0.05)
+            color: Qt.rgba(theme.bg0.r, theme.bg0.g, theme.bg0.b, 0.4)
+            border.color: Qt.rgba(theme.fg0.r, theme.fg0.g, theme.fg0.b, 0.05)
             border.width: 1
         }
 
@@ -378,7 +401,7 @@ PanelWindow {
 
                 Text {
                     text: Qt.formatDateTime(sysClock.date, "HH:mm")
-                    color: "#ebdbb2"
+                    color: theme.fg1
                     font.pixelSize: 84
                     font.bold: true
                     font.family: "sans-serif"
@@ -392,18 +415,18 @@ PanelWindow {
                     
                     Rectangle {
                         width: 8; height: 8; radius: 4
-                        color: "#b8bb26"
+                        color: theme.green
                         
                         SequentialAnimation on color {
                             loops: Animation.Infinite
-                            ColorAnimation { to: "#b8bb26"; duration: 800 }
+                            ColorAnimation { to: theme.green; duration: 800 }
                             ColorAnimation { to: "transparent"; duration: 800 }
                         }
                     }
 
                     Text {
                         text: "ZONE SECURE // ONLINE"
-                        color: "#a89984"
+                        color: theme.fg4
                         font.pixelSize: 10
                         font.weight: Font.Bold
                         font.letterSpacing: 1
@@ -413,7 +436,7 @@ PanelWindow {
 
                 Text {
                     text: Qt.formatDateTime(sysClock.date, "yyyy年 MM月dd日 dddd")
-                    color: "#bdae93"
+                    color: theme.fg3
                     font.pixelSize: 13
                     font.weight: Font.Medium
                     Layout.fillWidth: true
@@ -422,7 +445,7 @@ PanelWindow {
 
                 Text {
                     text: "UPTIME: " + wallpaperHud.uptimeStr
-                    color: "#a89984"
+                    color: theme.fg4
                     font.pixelSize: 11
                     font.bold: true
                     font.family: "Monospace"
@@ -434,7 +457,7 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true
                 height: 1
-                color: "#a89984"
+                color: theme.bg1
             }
 
             // ② システムステータス
@@ -447,16 +470,16 @@ PanelWindow {
                     Layout.fillWidth: true
                     spacing: 4
                     RowLayout {
-                        Text { text: "BATTERY"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Text { text: "BATTERY"; color: theme.fg4; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
                         Item { Layout.fillWidth: true }
-                        Text { text: Math.round(wallpaperHud.batteryPct) + "%"; color: wallpaperHud.batteryPct < 20 ? "#fb4934" : "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                        Text { text: Math.round(wallpaperHud.batteryPct) + "%"; color: wallpaperHud.batteryPct < 20 ? theme.red : theme.fg2; font.pixelSize: 10; font.family: "Monospace" }
                     }
                     Rectangle {
-                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Layout.fillWidth: true; height: 3; color: theme.bg0; radius: 1.5
                         Rectangle {
                             width: parent.width * (wallpaperHud.batteryPct / 100.0)
                             height: parent.height; radius: 1.5
-                            color: wallpaperHud.batteryPct < 20 ? "#fb4934" : "#ebdbb2"
+                            color: wallpaperHud.batteryPct < 20 ? theme.red : theme.fg1
                         }
                     }
                 }
@@ -466,21 +489,21 @@ PanelWindow {
                     Layout.fillWidth: true
                     spacing: 4
                     RowLayout {
-                        Text { text: "CPU"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Text { text: "CPU"; color: theme.fg4; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
                         Item { Layout.fillWidth: true }
                         Text { 
                             text: (wallpaperHud.cpuTemp > 0 ? (wallpaperHud.cpuTemp + "°C @ ") : "") + wallpaperHud.cpuPercent + "%"
-                            color: wallpaperHud.cpuPercent > 70 ? "#fabd2f" : "#d5c4a1"
+                            color: wallpaperHud.cpuPercent > 70 ? theme.yellow : theme.fg2
                             font.pixelSize: 10
                             font.family: "Monospace" 
                         }
                     }
                     Rectangle {
-                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Layout.fillWidth: true; height: 3; color: theme.bg0; radius: 1.5
                         Rectangle {
                             width: parent.width * (wallpaperHud.cpuPercent / 100.0)
                             height: parent.height; radius: 1.5
-                            color: wallpaperHud.cpuPercent > 70 ? "#fabd2f" : "#ebdbb2"
+                            color: wallpaperHud.cpuPercent > 70 ? theme.yellow : theme.fg1
                         }
                     }
                 }
@@ -490,16 +513,16 @@ PanelWindow {
                     Layout.fillWidth: true
                     spacing: 4
                     RowLayout {
-                        Text { text: "RAM"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Text { text: "RAM"; color: theme.fg4; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
                         Item { Layout.fillWidth: true }
-                        Text { text: wallpaperHud.ramGb.toFixed(1) + "G / " + wallpaperHud.ramTotal.toFixed(0) + "G"; color: "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                        Text { text: wallpaperHud.ramGb.toFixed(1) + "G / " + wallpaperHud.ramTotal.toFixed(0) + "G"; color: theme.fg2; font.pixelSize: 10; font.family: "Monospace" }
                     }
                     Rectangle {
-                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Layout.fillWidth: true; height: 3; color: theme.bg0; radius: 1.5
                         Rectangle {
                             width: parent.width * (wallpaperHud.ramGb / wallpaperHud.ramTotal)
                             height: parent.height; radius: 1.5
-                            color: "#ebdbb2"
+                            color: theme.fg1
                         }
                     }
                 }
@@ -509,16 +532,16 @@ PanelWindow {
                     Layout.fillWidth: true
                     spacing: 4
                     RowLayout {
-                        Text { text: "DISK"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Text { text: "DISK"; color: theme.fg4; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
                         Item { Layout.fillWidth: true }
-                        Text { text: wallpaperHud.diskUsedGb.toFixed(1) + "G / " + wallpaperHud.diskTotalGb.toFixed(0) + "G"; color: "#d5c4a1"; font.pixelSize: 10; font.family: "Monospace" }
+                        Text { text: wallpaperHud.diskUsedGb.toFixed(1) + "G / " + wallpaperHud.diskTotalGb.toFixed(0) + "G"; color: theme.fg2; font.pixelSize: 10; font.family: "Monospace" }
                     }
                     Rectangle {
-                        Layout.fillWidth: true; height: 3; color: "#282828"; radius: 1.5
+                        Layout.fillWidth: true; height: 3; color: theme.bg0; radius: 1.5
                         Rectangle {
                             width: parent.width * (wallpaperHud.diskPercent / 100.0)
                             height: parent.height; radius: 1.5
-                            color: "#ebdbb2"
+                            color: theme.fg1
                         }
                     }
                 }
@@ -528,11 +551,11 @@ PanelWindow {
                     Layout.fillWidth: true
                     spacing: 4
                     RowLayout {
-                        Text { text: "NETWORK"; color: "#a89984"; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
+                        Text { text: "NETWORK"; color: theme.fg4; font.pixelSize: 10; font.weight: Font.Bold; font.family: "Monospace" }
                         Item { Layout.fillWidth: true }
                         Text { 
                             text: "DN " + wallpaperHud.rxSpeedStr + "  UP " + wallpaperHud.txSpeedStr
-                            color: "#d5c4a1"
+                            color: theme.fg2
                             font.pixelSize: 10
                             font.family: "Monospace" 
                         }
@@ -543,7 +566,7 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true
                 height: 1
-                color: "#a89984"
+                color: theme.bg1
             }
 
             // ②.5 天気ステータス (絵文字なしのクリーンなデザイン)
@@ -554,7 +577,7 @@ PanelWindow {
 
                 Text {
                     text: "ENVIRONMENTAL WEATHER"
-                    color: "#a89984"
+                    color: theme.fg4
                     font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 2
                 }
 
@@ -564,7 +587,7 @@ PanelWindow {
                     
                     Text {
                         text: wallpaperHud.weatherTemp + "°C"
-                        color: "#ebdbb2"
+                        color: theme.fg1
                         font.pixelSize: 24
                         font.bold: true
                         font.family: "Monospace"
@@ -574,14 +597,14 @@ PanelWindow {
                         spacing: 2
                         Text {
                             text: wallpaperHud.weatherDesc.toUpperCase()
-                            color: "#fabd2f"
+                            color: theme.yellow
                             font.pixelSize: 11
                             font.bold: true
                             font.family: "Monospace"
                         }
                         Text {
                             text: "WIND: " + wallpaperHud.weatherWind + " km/h  |  HUMIDITY: " + wallpaperHud.weatherHum + "%"
-                            color: "#a89984"
+                            color: theme.fg4
                             font.pixelSize: 9
                             font.family: "Monospace"
                         }
@@ -592,7 +615,7 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true
                 height: 1
-                color: "#a89984"
+                color: theme.bg1
                 visible: wallpaperHud.weatherTemp !== ""
             }
 
@@ -603,7 +626,7 @@ PanelWindow {
 
                 Text {
                     text: "CHRONICLE CALENDAR"
-                    color: "#a89984"
+                    color: theme.fg4
                     font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 2
                 }
 
@@ -614,7 +637,7 @@ PanelWindow {
                         model: ["日", "月", "火", "水", "木", "金", "土"]
                         delegate: Text {
                             text: modelData
-                            color: index === 0 ? "#fb4934" : (index === 6 ? "#83a598" : "#bdae93")
+                            color: index === 0 ? theme.red : (index === 6 ? theme.blue : theme.fg3)
                             font.pixelSize: 11
                             font.weight: Font.Bold
                             horizontalAlignment: Text.AlignHCenter
@@ -639,7 +662,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 width: 22; height: 22; radius: 11
                                 color: "transparent"
-                                border.color: "#fabd2f"
+                                border.color: theme.yellow
                                 border.width: 1
                                 visible: modelData.isToday
                             }
@@ -648,8 +671,8 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: modelData.day > 0 ? modelData.day : ""
                                 color: modelData.isToday 
-                                    ? "#fabd2f" 
-                                    : (modelData.day > 0 ? "#bdae93" : "transparent")
+                                    ? theme.yellow 
+                                    : (modelData.day > 0 ? theme.fg3 : "transparent")
                                 font.pixelSize: 11
                                 font.weight: modelData.isToday ? Font.Bold : Font.Normal
                             }

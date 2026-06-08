@@ -58,6 +58,19 @@ PanelWindow {
 
     property var allItems: []
 
+    // クリップボード監視の自動起動デーモン
+    Process {
+        id: cliphistTextWatch
+        command: ["wl-paste", "--type", "text", "--watch", "cliphist", "store"]
+        running: true
+    }
+
+    Process {
+        id: cliphistImageWatch
+        command: ["wl-paste", "--type", "image", "--watch", "cliphist", "store"]
+        running: true
+    }
+
     Process {
         id: listFetcher
         command: ["cliphist", "list"]
@@ -117,6 +130,16 @@ PanelWindow {
         Quickshell.execDetached(["sh", "-c", notifyCmd])
     }
 
+    function clearClipboardHistory() {
+        Quickshell.execDetached(["cliphist", "wipe"])
+        
+        let notifyCmd = "notify-send -h string:x-canonical-private-synchronous:clipboard -u low 'クリップボード' '履歴をすべて削除しました'"
+        Quickshell.execDetached(["sh", "-c", notifyCmd])
+        
+        searchInput.text = ""
+        loadHistory()
+    }
+
     function quoteShell(str) {
         return "'" + str.replace(/'/g, "'\\''") + "'"
     }
@@ -142,8 +165,8 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: -16 // Margin 0, flat bottom corners
-            color: "#1d2021" // Gruvbox Background
-            border.color: "#3c3836"
+            color: theme.bg0_hard // Gruvbox Background
+            border.color: theme.bg1
             border.width: 1
             radius: 16
 
@@ -159,9 +182,9 @@ PanelWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     height: 45
-                    color: "#282828"
+                    color: theme.bg0
                     radius: 8
-                    border.color: searchInput.activeFocus ? "#fabd2f" : "#3c3836"
+                    border.color: searchInput.activeFocus ? theme.yellow : theme.bg1
                     border.width: 1
 
                     RowLayout {
@@ -172,9 +195,11 @@ PanelWindow {
                         spacing: 8
 
                         Text {
-                            text: "📋"
-                            color: "#a89984"
-                            font.pixelSize: 14
+                            text: "CLIP"
+                            color: theme.fg4
+                            font.bold: true
+                            font.pixelSize: 11
+                            font.family: "Monospace"
                         }
 
                         TextField {
@@ -182,11 +207,11 @@ PanelWindow {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             background: Item {}
-                            color: "#ebdbb2"
+                            color: theme.fg1
                             font.pixelSize: 14
                             font.family: "Monospace"
                             placeholderText: "Search Clipboard History..."
-                            placeholderTextColor: "#7c6f64"
+                            placeholderTextColor: theme.fg4
                             verticalAlignment: TextInput.AlignVCenter
 
                             onTextChanged: filterItems(text)
@@ -204,7 +229,9 @@ PanelWindow {
                                 event.accepted = true;
                             }
                             Keys.onReturnPressed: (event) => {
-                                if (historyListView.currentIndex >= 0 && historyListView.currentIndex < clipboardModel.count) {
+                                if (searchInput.text.trim() === "/clear") {
+                                    clearClipboardHistory();
+                                } else if (historyListView.currentIndex >= 0 && historyListView.currentIndex < clipboardModel.count) {
                                     copyAndClose(clipboardModel.get(historyListView.currentIndex).raw);
                                 }
                                 event.accepted = true;
@@ -239,8 +266,8 @@ PanelWindow {
                         width: ListView.view.width
                         height: 40
                         radius: 6
-                        color: index === historyListView.currentIndex ? "#282828" : "transparent"
-                        border.color: index === historyListView.currentIndex ? "#fabd2f" : "transparent"
+                        color: index === historyListView.currentIndex ? theme.bg0 : "transparent"
+                        border.color: index === historyListView.currentIndex ? theme.yellow : "transparent"
                         border.width: 1
 
 
@@ -252,7 +279,7 @@ PanelWindow {
 
                             Text {
                                 text: (index + 1) + "."
-                                color: index === historyListView.currentIndex ? "#fabd2f" : "#7c6f64"
+                                color: index === historyListView.currentIndex ? theme.yellow : theme.fg4
                                 font.pixelSize: 12
                                 font.bold: true
                                 font.family: "Monospace"
@@ -265,7 +292,7 @@ PanelWindow {
                                     if (c.startsWith("<meta")) return "[Image / Binary Data]"
                                     return c
                                 }
-                                color: index === historyListView.currentIndex ? "#ebdbb2" : "#a89984"
+                                color: index === historyListView.currentIndex ? theme.fg1 : theme.fg4
                                 font.pixelSize: 13
                                 font.bold: index === historyListView.currentIndex
                                 font.family: "Monospace"

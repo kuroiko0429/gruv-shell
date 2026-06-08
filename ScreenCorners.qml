@@ -6,11 +6,23 @@ import QtQuick
 Item {
     id: root
     property int cornerRadius: 16
-    property color cornerColor: "#000000" // Color matching display bezel (black)
+    property color cornerColor: theme.bg0_hard // Color matching display bezel (black)
+    property int topMargin: 35
+
+    Connections {
+        target: theme
+        function onModeChanged() {
+            tlCanvas.requestPaint();
+            trCanvas.requestPaint();
+            blCanvas.requestPaint();
+            brCanvas.requestPaint();
+        }
+    }
 
     // Top-Left Corner
     PanelWindow {
         anchors { top: true; left: true }
+        margins.top: root.topMargin
         implicitWidth: root.cornerRadius
         implicitHeight: root.cornerRadius
         color: "transparent"
@@ -22,6 +34,7 @@ Item {
         mask: Region {} // Empty input region to guarantee mouse passthrough
 
         Canvas {
+            id: tlCanvas
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d");
@@ -41,6 +54,7 @@ Item {
     // Top-Right Corner
     PanelWindow {
         anchors { top: true; right: true }
+        margins.top: root.topMargin
         implicitWidth: root.cornerRadius
         implicitHeight: root.cornerRadius
         color: "transparent"
@@ -52,6 +66,7 @@ Item {
         mask: Region {} // Empty input region to guarantee mouse passthrough
 
         Canvas {
+            id: trCanvas
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d");
@@ -82,6 +97,7 @@ Item {
         mask: Region {} // Empty input region to guarantee mouse passthrough
 
         Canvas {
+            id: blCanvas
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d");
@@ -112,6 +128,7 @@ Item {
         mask: Region {} // Empty input region to guarantee mouse passthrough
 
         Canvas {
+            id: brCanvas
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d");

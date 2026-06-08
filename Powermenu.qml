@@ -7,7 +7,8 @@ import QtQuick.Layouts
 
 PanelWindow {
     id: powermenuWindow
-    anchors { bottom: true; left: true; right: true }
+    anchors { top: true; left: true; right: true }
+    margins.top: 35
     implicitHeight: 180
     color: "transparent"
     visible: false
@@ -23,12 +24,12 @@ PanelWindow {
     onActiveChanged: {
         if (active) {
             powermenuWindow.visible = true
-            slideAnimation.from = powermenuWindow.height + 20
+            slideAnimation.from = -powermenuWindow.height - 20
             slideAnimation.to = 0
             slideAnimation.start()
         } else {
             slideAnimation.from = container.y
-            slideAnimation.to = powermenuWindow.height + 20
+            slideAnimation.to = -powermenuWindow.height - 20
             slideAnimation.start()
         }
     }
@@ -60,7 +61,7 @@ PanelWindow {
 
     function triggerAction(idx) {
         if (idx === 0) {
-            runAction("bash ~/.config/quickshell/lockscreen/lock.sh")
+            runAction("bash ~/.config/quickshell/kuroiko_bar/lock.sh")
         } else if (idx === 1) {
             runAction("hyprctl dispatch exit")
         } else if (idx === 2) {
@@ -80,7 +81,7 @@ PanelWindow {
         id: container
         width: parent.width
         height: parent.height
-        y: parent.height + 20 // Initial state is out of view
+        y: -parent.height - 20 // Initial state is out of view
 
         focus: powermenuWindow.active
 
@@ -119,17 +120,46 @@ PanelWindow {
         }
 
         // Central card containing system actions
-        Rectangle {
+        Canvas {
             id: card
-            width: 750
-            height: parent.height - 20 + 16 // Extend by radius
+            width: 782 // 750 + 2 * 16 (radius)
+            height: parent.height - 20
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: -16 // Margin 0, flat bottom corners
-            color: "#1d2021" // Gruvbox Background
-            border.color: "#3c3836"
-            border.width: 1
-            radius: 16
+            anchors.top: parent.top
+            anchors.topMargin: 0
+
+            onWidthChanged: requestPaint()
+            onHeightChanged: requestPaint()
+
+            Connections {
+                target: theme
+                function onModeChanged() {
+                    card.requestPaint();
+                }
+            }
+
+            onPaint: {
+                var ctx = getContext("2d");
+                ctx.reset();
+                ctx.fillStyle = theme.bg0_hard; // Gruvbox Background
+                
+                var R = 16; // radius
+                var w = width;
+                var h = height;
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(w, 0);
+                ctx.arc(w, R, R, 1.5 * Math.PI, 1.0 * Math.PI, true);
+                ctx.lineTo(w - R, h - R);
+                ctx.arc(w - 2*R, h - R, R, 0, 0.5 * Math.PI, false);
+                ctx.lineTo(2*R, h);
+                ctx.arc(2*R, h - R, R, 0.5 * Math.PI, 1.0 * Math.PI, false);
+                ctx.lineTo(R, R);
+                ctx.arc(0, R, R, 0, 1.5 * Math.PI, true);
+                ctx.closePath();
+                ctx.fill();
+            }
 
             // Prevent background click handler from triggering when clicking inside the card
             MouseArea {
@@ -142,9 +172,9 @@ PanelWindow {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.topMargin: 16
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                anchors.bottomMargin: 32 // Offset the bottom-margin shift to keep buttons visible
+                anchors.leftMargin: 36 // 20 + 16 (concave corner offset)
+                anchors.rightMargin: 36 // 20 + 16 (concave corner offset)
+                anchors.bottomMargin: 16
                 spacing: 16
 
                 // Header
@@ -152,7 +182,7 @@ PanelWindow {
                     Layout.fillWidth: true
                     Text {
                         text: "SYSTEM POWER OPTIONS"
-                        color: "#a89984"
+                        color: theme.fg4
                         font.pixelSize: 11
                         font.bold: true
                         font.letterSpacing: 2
@@ -161,7 +191,7 @@ PanelWindow {
                     Item { Layout.fillWidth: true }
                     Text {
                         text: "SELECT AN ACTION"
-                        color: "#7c6f64"
+                        color: theme.fg4
                         font.pixelSize: 9
                         font.family: "Monospace"
                     }
@@ -178,8 +208,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 8
-                        color: (lockMa.containsMouse || currentIndex === 0) ? "#282828" : "#1d2021"
-                        border.color: (lockMa.containsMouse || currentIndex === 0) ? "#fe8019" : "#3c3836" // Orange
+                        color: (lockMa.containsMouse || currentIndex === 0) ? theme.bg0 : theme.bg0_hard
+                        border.color: (lockMa.containsMouse || currentIndex === 0) ? theme.orange : theme.bg1 // Orange
                         border.width: 1
 
                         ColumnLayout {
@@ -187,7 +217,7 @@ PanelWindow {
                             spacing: 6
                             Text {
                                 text: "LOCK"
-                                color: (lockMa.containsMouse || currentIndex === 0) ? "#fe8019" : "#ebdbb2"
+                                color: (lockMa.containsMouse || currentIndex === 0) ? theme.orange : theme.fg1
                                 font.bold: true
                                 font.pixelSize: 13
                                 font.family: "Monospace"
@@ -195,7 +225,7 @@ PanelWindow {
                             }
                             Text {
                                 text: "Lock Session"
-                                color: "#7c6f64"
+                                color: theme.fg4
                                 font.pixelSize: 8
                                 font.family: "Monospace"
                                 Layout.alignment: Qt.AlignHCenter
@@ -216,8 +246,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 8
-                        color: (logoutMa.containsMouse || currentIndex === 1) ? "#282828" : "#1d2021"
-                        border.color: (logoutMa.containsMouse || currentIndex === 1) ? "#fabd2f" : "#3c3836" // Yellow
+                        color: (logoutMa.containsMouse || currentIndex === 1) ? theme.bg0 : theme.bg0_hard
+                        border.color: (logoutMa.containsMouse || currentIndex === 1) ? theme.yellow : theme.bg1 // Yellow
                         border.width: 1
 
                         ColumnLayout {
@@ -225,7 +255,7 @@ PanelWindow {
                             spacing: 6
                             Text {
                                 text: "LOGOUT"
-                                color: (logoutMa.containsMouse || currentIndex === 1) ? "#fabd2f" : "#ebdbb2"
+                                color: (logoutMa.containsMouse || currentIndex === 1) ? theme.yellow : theme.fg1
                                 font.bold: true
                                 font.pixelSize: 13
                                 font.family: "Monospace"
@@ -233,7 +263,7 @@ PanelWindow {
                             }
                             Text {
                                 text: "Exit Session"
-                                color: "#7c6f64"
+                                color: theme.fg4
                                 font.pixelSize: 8
                                 font.family: "Monospace"
                                 Layout.alignment: Qt.AlignHCenter
@@ -254,8 +284,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 8
-                        color: (screenOffMa.containsMouse || currentIndex === 2) ? "#282828" : "#1d2021"
-                        border.color: (screenOffMa.containsMouse || currentIndex === 2) ? "#8ec07c" : "#3c3836" // Aqua
+                        color: (screenOffMa.containsMouse || currentIndex === 2) ? theme.bg0 : theme.bg0_hard
+                        border.color: (screenOffMa.containsMouse || currentIndex === 2) ? theme.aqua : theme.bg1 // Aqua
                         border.width: 1
 
                         ColumnLayout {
@@ -263,7 +293,7 @@ PanelWindow {
                             spacing: 6
                             Text {
                                 text: "DISPLAY"
-                                color: (screenOffMa.containsMouse || currentIndex === 2) ? "#8ec07c" : "#ebdbb2"
+                                color: (screenOffMa.containsMouse || currentIndex === 2) ? theme.aqua : theme.fg1
                                 font.bold: true
                                 font.pixelSize: 13
                                 font.family: "Monospace"
@@ -271,7 +301,7 @@ PanelWindow {
                             }
                             Text {
                                 text: "Screen Off"
-                                color: "#7c6f64"
+                                color: theme.fg4
                                 font.pixelSize: 8
                                 font.family: "Monospace"
                                 Layout.alignment: Qt.AlignHCenter
@@ -292,8 +322,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 8
-                        color: (suspendMa.containsMouse || currentIndex === 3) ? "#282828" : "#1d2021"
-                        border.color: (suspendMa.containsMouse || currentIndex === 3) ? "#83a598" : "#3c3836" // Blue
+                        color: (suspendMa.containsMouse || currentIndex === 3) ? theme.bg0 : theme.bg0_hard
+                        border.color: (suspendMa.containsMouse || currentIndex === 3) ? theme.blue : theme.bg1 // Blue
                         border.width: 1
 
                         ColumnLayout {
@@ -301,7 +331,7 @@ PanelWindow {
                             spacing: 6
                             Text {
                                 text: "SLEEP"
-                                color: (suspendMa.containsMouse || currentIndex === 3) ? "#83a598" : "#ebdbb2"
+                                color: (suspendMa.containsMouse || currentIndex === 3) ? theme.blue : theme.fg1
                                 font.bold: true
                                 font.pixelSize: 13
                                 font.family: "Monospace"
@@ -309,7 +339,7 @@ PanelWindow {
                             }
                             Text {
                                 text: "Suspend PC"
-                                color: "#7c6f64"
+                                color: theme.fg4
                                 font.pixelSize: 8
                                 font.family: "Monospace"
                                 Layout.alignment: Qt.AlignHCenter
@@ -330,8 +360,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 8
-                        color: (hibernateMa.containsMouse || currentIndex === 4) ? "#282828" : "#1d2021"
-                        border.color: (hibernateMa.containsMouse || currentIndex === 4) ? "#d3869b" : "#3c3836" // Purple
+                        color: (hibernateMa.containsMouse || currentIndex === 4) ? theme.bg0 : theme.bg0_hard
+                        border.color: (hibernateMa.containsMouse || currentIndex === 4) ? theme.purple : theme.bg1 // Purple
                         border.width: 1
 
                         ColumnLayout {
@@ -339,7 +369,7 @@ PanelWindow {
                             spacing: 6
                             Text {
                                 text: "HIBERNATE"
-                                color: (hibernateMa.containsMouse || currentIndex === 4) ? "#d3869b" : "#ebdbb2"
+                                color: (hibernateMa.containsMouse || currentIndex === 4) ? theme.purple : theme.fg1
                                 font.bold: true
                                 font.pixelSize: 13
                                 font.family: "Monospace"
@@ -347,7 +377,7 @@ PanelWindow {
                             }
                             Text {
                                 text: "Disk Suspend"
-                                color: "#7c6f64"
+                                color: theme.fg4
                                 font.pixelSize: 8
                                 font.family: "Monospace"
                                 Layout.alignment: Qt.AlignHCenter
@@ -368,8 +398,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 8
-                        color: (rebootMa.containsMouse || currentIndex === 5) ? "#282828" : "#1d2021"
-                        border.color: (rebootMa.containsMouse || currentIndex === 5) ? "#b8bb26" : "#3c3836" // Green
+                        color: (rebootMa.containsMouse || currentIndex === 5) ? theme.bg0 : theme.bg0_hard
+                        border.color: (rebootMa.containsMouse || currentIndex === 5) ? theme.green : theme.bg1 // Green
                         border.width: 1
 
                         ColumnLayout {
@@ -377,7 +407,7 @@ PanelWindow {
                             spacing: 6
                             Text {
                                 text: "REBOOT"
-                                color: (rebootMa.containsMouse || currentIndex === 5) ? "#b8bb26" : "#ebdbb2"
+                                color: (rebootMa.containsMouse || currentIndex === 5) ? theme.green : theme.fg1
                                 font.bold: true
                                 font.pixelSize: 13
                                 font.family: "Monospace"
@@ -385,7 +415,7 @@ PanelWindow {
                             }
                             Text {
                                 text: "Restart PC"
-                                color: "#7c6f64"
+                                color: theme.fg4
                                 font.pixelSize: 8
                                 font.family: "Monospace"
                                 Layout.alignment: Qt.AlignHCenter
@@ -406,8 +436,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 8
-                        color: (shutdownMa.containsMouse || currentIndex === 6) ? "#282828" : "#1d2021"
-                        border.color: (shutdownMa.containsMouse || currentIndex === 6) ? "#fb4934" : "#3c3836" // Red
+                        color: (shutdownMa.containsMouse || currentIndex === 6) ? theme.bg0 : theme.bg0_hard
+                        border.color: (shutdownMa.containsMouse || currentIndex === 6) ? theme.red : theme.bg1 // Red
                         border.width: 1
 
                         ColumnLayout {
@@ -415,7 +445,7 @@ PanelWindow {
                             spacing: 6
                             Text {
                                 text: "SHUTDOWN"
-                                color: (shutdownMa.containsMouse || currentIndex === 6) ? "#fb4934" : "#ebdbb2"
+                                color: (shutdownMa.containsMouse || currentIndex === 6) ? theme.red : theme.fg1
                                 font.bold: true
                                 font.pixelSize: 13
                                 font.family: "Monospace"
@@ -423,7 +453,7 @@ PanelWindow {
                             }
                             Text {
                                 text: "Power Off PC"
-                                color: "#7c6f64"
+                                color: theme.fg4
                                 font.pixelSize: 8
                                 font.family: "Monospace"
                                 Layout.alignment: Qt.AlignHCenter

@@ -6,16 +6,20 @@ import Quickshell.Io
 import Quickshell.Services.Pipewire
 import Quickshell.Networking
 import Quickshell.Services.Mpris
+import Quickshell.Services.SystemTray
 import QtQuick
 import QtQuick.Layouts
 
 PanelWindow {
+    id: statusBarWindow
     anchors {
-        top: true
+      top: true
+      left: true
+      right: true
     }
     
     margins.top: 0
-    implicitWidth: 1500
+    // implicitWidth: 1500
     implicitHeight: 35
     color: "transparent"
 
@@ -85,8 +89,8 @@ PanelWindow {
         Rectangle {
             id: roundedBg
             anchors.fill: parent
-            color: "#1d2021" // Gruvbox背景
-            radius: 12
+            color: theme.bg0_hard // Gruvbox背景
+            //radius: 12
         }
         Rectangle {
             anchors.top: parent.top
@@ -121,12 +125,12 @@ PanelWindow {
                     property int wsId: index + 1
                     property bool isFocused: wsId === Hyprland.focusedWorkspace?.id
 
-                    color: isFocused ? "#282828" : "#32302f"
+                    color: isFocused ? theme.bg0 : theme.bg0_soft
                   
                     Text {
                         anchors.centerIn: parent
                         text: parent.wsId.toString()
-                        color: parent.isFocused ? "#fbf1c7" : "#928374"
+                        color: parent.isFocused ? theme.fg0 : theme.gray
                         font.bold: true
                     }
 
@@ -155,7 +159,7 @@ PanelWindow {
             // 音楽情報
             Rectangle {
                 id: musicPill
-                color: "#282828"
+                color: theme.bg0
                 radius: 6
                 width: 200
                 height: 24
@@ -173,7 +177,7 @@ PanelWindow {
                         return artist ? `${title} - ${artist}` : title
                     }
                     elide: Text.ElideRight
-                    color: "#fbf1c7"
+                    color: theme.fg0
                     font.bold: true
                     font.pixelSize: 11
                     horizontalAlignment: Text.AlignHCenter
@@ -188,6 +192,42 @@ PanelWindow {
                     }
                 }
             }
+
+            // スクリーンショットボタン
+            Rectangle {
+                id: screenshotButton
+                color: theme.bg0
+                radius: 6
+                width: 44
+                height: 24
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "SHOT"
+                    color: theme.fg0
+                    font.bold: true
+                    font.pixelSize: 10
+                    font.family: "Monospace"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+                    
+                    onEntered: screenshotButton.color = theme.bg0_soft
+                    onExited: screenshotButton.color = theme.bg0
+
+                    onClicked: mouse => {
+                        if (mouse.button === Qt.LeftButton) {
+                            Quickshell.execDetached(["sh", "-c", "grim -g \"$(slurp)\" - | swappy -f -"])
+                        } else if (mouse.button === Qt.RightButton) {
+                            Quickshell.execDetached(["sh", "-c", "grim - | swappy -f -"])
+                        }
+                    }
+                }
+            }
         }
 
         // --- 2. 中央: アプリ名 (親Itemの完全な中央に固定) ---
@@ -196,7 +236,7 @@ PanelWindow {
             anchors.centerIn: parent
             width: Math.min(250, activeAppText.implicitWidth + 20)
             height: 24
-            color: "#282828"
+            color: theme.bg0
             radius: 6
 
             // 幅を滑らかに伸縮させるアニメーション
@@ -211,7 +251,7 @@ PanelWindow {
                 text: Hyprland.activeToplevel ? 
                         (Hyprland.activeToplevel.title !== "" ? Hyprland.activeToplevel.title : "タイトルなし") 
                         : "デスクトップ"
-                color: "#fbf1c7"
+                color: theme.fg0
                 font.bold: true
                 elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
@@ -224,9 +264,83 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 8
 
+            // システムトレイ
+            Row {
+                id: systray
+                spacing: 6
+                anchors.verticalCenter: parent.verticalCenter
+                visible: trayRepeater.count > 0
+
+                Repeater {
+                    id: trayRepeater
+                    model: SystemTray.items
+                    delegate: Rectangle {
+                        width: 24
+                        height: 24
+                        radius: 6
+                        color: theme.bg0
+
+                        Image {
+                            id: iconImage
+                            anchors.fill: parent
+                            anchors.margins: 4
+                            source: {
+                                let iconStr = modelData.icon;
+                                if (!iconStr) return "";
+                                if (iconStr.startsWith("/") || iconStr.startsWith("file://")) {
+                                    return iconStr.startsWith("/") ? "file://" + iconStr : iconStr;
+                                }
+                                let name = iconStr;
+                                if (iconStr.startsWith("image://icon/")) {
+                                    name = iconStr.substring(13);
+                                }
+                                let path = Quickshell.iconPath(name, true);
+                                if (!path) return "";
+                                if (path.startsWith("/image://")) return path.substring(1);
+                                if (path.startsWith("image://")) return path;
+                                return "file://" + path;
+                            }
+                            fillMode: Image.PreserveAspectFit
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData.title ? modelData.title.substring(0, 1).toUpperCase() : "?"
+                            color: theme.fg0
+                            font.bold: true
+                            font.pixelSize: 10
+                            visible: iconImage.status !== Image.Ready
+                        }
+
+                        MouseArea {
+                            id: ma
+                            anchors.fill: parent
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            cursorShape: Qt.PointingHandCursor
+                            
+                            onClicked: mouse => {
+                                if (mouse.button === Qt.LeftButton) {
+                                    modelData.activate()
+                                } else if (mouse.button === Qt.RightButton && modelData.hasMenu) {
+                                    let pos = ma.mapToItem(null, mouse.x, mouse.y)
+                                    modelData.display(statusBarWindow, pos.x, pos.y)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // トレイと他の項目の間の隙間
+            Item {
+                width: 4
+                height: 24
+                visible: trayRepeater.count > 0
+            }
+
             // スピーカー音量
             Rectangle {
-                color: "#282828"
+                color: theme.bg0
                 radius: 6
                 width: implicitWidth
                 height: implicitHeight
@@ -246,7 +360,7 @@ PanelWindow {
                         if (sink.audio.muted) return "VOL MUT"
                         return "VOL " + Math.round(sink.audio.volume * 100) + "%"
                     }
-                    color: "#fbf1c7"
+                    color: theme.fg0
                     font.bold: true
                     font.pixelSize: 12
                 }
@@ -273,7 +387,7 @@ PanelWindow {
             // ディスプレイ光度
             Rectangle {
                 id: briRoot
-                color: "#282828"
+                color: theme.bg0
                 radius: 6
                 width: implicitWidth
                 height: implicitHeight
@@ -286,7 +400,7 @@ PanelWindow {
                     id: briText
                     anchors.centerIn: parent
                     text: "BRI " + briRoot.brightnessVal + "%"
-                    color: "#fbf1c7"
+                    color: theme.fg0
                     font.bold: true
                     font.pixelSize: 12
                 }
@@ -354,7 +468,7 @@ PanelWindow {
             // Wi-Fi 接続名
             Rectangle {
                 id: wifiRoot
-                color: "#282828"
+                color: theme.bg0
                 radius: 6
                 width: implicitWidth
                 height: implicitHeight
@@ -387,7 +501,7 @@ PanelWindow {
                         }
                         return "WIFI DISCONN"
                     }
-                    color: "#fbf1c7"
+                    color: theme.fg0
                     font.bold: true
                     font.pixelSize: 12
                 }
@@ -395,7 +509,7 @@ PanelWindow {
 
             // パワープロファイル
             Rectangle {
-                color: "#282828"
+                color: theme.bg0
                 radius: 6
                 implicitWidth: pwrText.implicitWidth + 20
                 implicitHeight: 24
@@ -410,10 +524,10 @@ PanelWindow {
                         return "PWR --"
                     }
                     color: {
-                        if (activePowerProfile === "power-saver") return "#b8bb26" // Gruvbox Green
-                        if (activePowerProfile === "balanced") return "#83a598" // Gruvbox Blue
-                        if (activePowerProfile === "performance") return "#fb4934" // Gruvbox Red
-                        return "#fbf1c7"
+                        if (activePowerProfile === "power-saver") return theme.green
+                        if (activePowerProfile === "balanced") return theme.blue
+                        if (activePowerProfile === "performance") return theme.red
+                        return theme.fg0
                     }
                     font.bold: true
                     font.pixelSize: 12
@@ -426,9 +540,44 @@ PanelWindow {
                 }
             }
 
+            // ライト/ダークモード切り替え
+            Rectangle {
+                color: theme.bg0
+                radius: 6
+                implicitWidth: themeText.implicitWidth + 20
+                implicitHeight: 24
+
+                Text {
+                    id: themeText
+                    anchors.centerIn: parent
+                    text: theme.mode === "dark" ? "DARK" : "LIGHT"
+                    color: theme.mode === "dark" ? theme.yellow : theme.blue
+                    font.bold: true
+                    font.pixelSize: 12
+                }
+
+                MouseArea {
+                    id: themeMa
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        themeMa.enabled = false;
+                        debounceTimer.start();
+                        theme.toggle();
+                    }
+                }
+
+                Timer {
+                    id: debounceTimer
+                    interval: 1000
+                    repeat: false
+                    onTriggered: themeMa.enabled = true
+                }
+            }
+
             // バッテリー
             Rectangle {
-                color: "#282828"
+                color: theme.bg0
                 radius: 6
                 implicitWidth: batContent.implicitWidth + 20
                 implicitHeight: 24
@@ -439,18 +588,19 @@ PanelWindow {
                     Text {
                         id: batText
                         text: "--%"
-                        color: "#fbf1c7"
+                        color: theme.fg0
                         font.bold: true
                         font.pixelSize: 12
                     }
                 }
                 Process {
                     id: batProcess
-                    command: ["sh", "-c", "cat /sys/class/power_supply/BAT0/capacity"]
+                    command: ["sh", "-c", "cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n 1"]
                     running: true
                     stdout: StdioCollector {
                         onStreamFinished: {
-                            batText.text = this.text.trim() + "%"
+                            let val = this.text.trim()
+                            batText.text = val !== "" ? val + "%" : "--%"
                         }
                     }
                 }
@@ -468,7 +618,7 @@ PanelWindow {
             // 時計
             Rectangle {
                 id: clockBackground
-                color: "#282828" 
+                color: theme.bg0
                 radius: 6
                 implicitWidth: clockText.implicitWidth + 20
                 implicitHeight: 24
@@ -476,7 +626,7 @@ PanelWindow {
                 Text {
                     id: clockText
                     anchors.centerIn: parent
-                    color: "#fbf1c7"
+                    color: theme.fg0
                     font.bold: true
                     font.pixelSize: 12
                     text: Qt.formatDateTime(new Date(), "MM/dd HH:mm")
