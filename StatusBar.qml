@@ -183,12 +183,13 @@ PanelWindow {
                     horizontalAlignment: Text.AlignHCenter
                 }
 
-                // クリックで再生/一時停止
+                // クリックで再生/一時停止、右クリックでプレイヤー詳細トグル
                 MouseArea {
                     anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        if (activePlayer) activePlayer.togglePlaying()
+                        Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "musicPlayer", "toggle"])
                     }
                 }
             }

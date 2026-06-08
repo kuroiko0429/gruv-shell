@@ -74,4 +74,5 @@ ShellRoot {
     ClipboardSelector {}
     Powermenu {}
     ScreenCorners {}
+    MusicPlayer {}
 }

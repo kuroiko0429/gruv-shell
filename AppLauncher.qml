@@ -23,6 +23,7 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
+            searchInput.text = ""
             launcherWindow.visible = true
             slideAnimation.from = -launcherWindow.width - 20
             slideAnimation.to = 0
