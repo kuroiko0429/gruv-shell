@@ -44,6 +44,7 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
+            shellRoot.closeAllExcept(musicPlayerWindow)
             musicPlayerWindow.visible = true
             slideAnimation.from = -musicPlayerWindow.height - 20
             slideAnimation.to = 0

@@ -73,6 +73,16 @@ PanelWindow {
         activePowerProfile = nextProfile
     }
 
+    IpcHandler {
+        target: "statusBar"
+        function updatePowerProfile(profile: string): void {
+            statusBarWindow.activePowerProfile = profile
+        }
+        function updateBrightness(val: string): void {
+            briRoot.brightnessVal = parseInt(val) || 0
+        }
+    }
+
     // Mpris プレイヤーの選定
     property var activePlayer: {
         let count = Mpris.players.count // 依存性の確保
@@ -366,13 +376,16 @@ PanelWindow {
                     font.pixelSize: 12
                 }
 
-                // マウススクロールで音量を調整 / クリックでミュート切り替え
+                // マウススクロールで音量を調整 / 左クリックで詳細トグル / 右クリックでミュート切り替え
                 MouseArea {
                     anchors.fill: parent
-                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
                     onClicked: mouse => {
                         let sink = Pipewire.defaultAudioSink
-                        if (sink && sink.audio) {
+                        if (mouse.button === Qt.LeftButton) {
+                            Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "volumeSelector", "toggle"])
+                        } else if (mouse.button === Qt.RightButton && sink && sink.audio) {
                             sink.audio.muted = !sink.audio.muted
                         }
                     }
@@ -451,6 +464,11 @@ PanelWindow {
 
                 MouseArea {
                     anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton
+                    onClicked: {
+                        Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "brightnessSelector", "toggle"])
+                    }
                     onWheel: event => {
                         let increase = event.angleDelta.y < 0
                         if (increase) {
@@ -506,6 +524,14 @@ PanelWindow {
                     font.bold: true
                     font.pixelSize: 12
                 }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "wifiSelector", "toggle"])
+                    }
+                }
             }
 
             // パワープロファイル
@@ -536,8 +562,15 @@ PanelWindow {
 
                 MouseArea {
                     anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: togglePowerProfile()
+                    onClicked: mouse => {
+                        if (mouse.button === Qt.LeftButton) {
+                            Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "powerProfileSelector", "toggle"])
+                        } else if (mouse.button === Qt.RightButton) {
+                            togglePowerProfile()
+                        }
+                    }
                 }
             }
 
@@ -612,6 +645,40 @@ PanelWindow {
                     onTriggered: {
                         batProcess.running = false
                         batProcess.running = true
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "batteryInfo", "toggle"])
+                    }
+                }
+            }
+
+            // 通知ステーション
+            Rectangle {
+                id: notifStationBtn
+                color: theme.bg0
+                radius: 6
+                implicitWidth: notifStationText.implicitWidth + 20
+                implicitHeight: 24
+
+                Text {
+                    id: notifStationText
+                    anchors.centerIn: parent
+                    text: "🔔 " + shellRoot.notificationHistory.length
+                    color: shellRoot.notificationHistory.length > 0 ? theme.yellow : theme.gray
+                    font.bold: true
+                    font.pixelSize: 12
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "notificationStation", "toggle"])
                     }
                 }
             }

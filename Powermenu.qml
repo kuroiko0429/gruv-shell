@@ -23,6 +23,7 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
+            shellRoot.closeAllExcept(powermenuWindow)
             powermenuWindow.visible = true
             slideAnimation.from = -powermenuWindow.height - 20
             slideAnimation.to = 0

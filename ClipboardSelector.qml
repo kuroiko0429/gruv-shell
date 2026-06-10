@@ -22,6 +22,7 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
+            shellRoot.closeAllExcept(clipboardWindow)
             clipboardWindow.visible = true
             loadHistory()
             slideAnimation.from = clipboardWindow.height + 20
@@ -72,6 +73,17 @@ PanelWindow {
     }
 
     Process {
+        id: previewGenerator
+        command: ["python3", "/home/kuroiko/.config/quickshell/kuroiko_bar/cliphist_previewer.py"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                listFetcher.running = false
+                listFetcher.running = true
+            }
+        }
+    }
+
+    Process {
         id: listFetcher
         command: ["cliphist", "list"]
         stdout: StdioCollector {
@@ -85,9 +97,23 @@ PanelWindow {
                         if (tabIdx !== -1) {
                             let id = line.substring(0, tabIdx)
                             let content = line.substring(tabIdx + 1)
-                            items.push({ "raw": line, "id": id, "content": content })
+                            let isImage = content.includes("[[ binary data")
+                            let previewPath = isImage ? "file:///tmp/cliphist_" + id + ".png" : ""
+                            items.push({
+                                "raw": line,
+                                "id": id,
+                                "content": content,
+                                "isImage": isImage,
+                                "previewPath": previewPath
+                            })
                         } else {
-                            items.push({ "raw": line, "id": "", "content": line })
+                            items.push({
+                                "raw": line,
+                                "id": "",
+                                "content": line,
+                                "isImage": false,
+                                "previewPath": ""
+                            })
                         }
                     }
                 }
@@ -102,8 +128,8 @@ PanelWindow {
     }
 
     function loadHistory() {
-        listFetcher.running = false
-        listFetcher.running = true
+        previewGenerator.running = false
+        previewGenerator.running = true
     }
 
     function filterItems(query) {
@@ -158,24 +184,58 @@ PanelWindow {
         y: parent.height + 20 // Initial state is out of view
 
         // Central card containing search and results
-        Rectangle {
+        Canvas {
             id: card
             width: 600
-            height: parent.height - 20 + 16 // Extend by radius
+            height: parent.height - 20
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: -16 // Margin 0, flat bottom corners
-            color: theme.bg0_hard // Gruvbox Background
-            border.color: theme.bg1
-            border.width: 1
-            radius: 16
+
+            onWidthChanged: requestPaint()
+            onHeightChanged: requestPaint()
+
+            Connections {
+                target: theme
+                function onModeChanged() {
+                    card.requestPaint();
+                }
+            }
+
+            onPaint: {
+                var ctx = getContext("2d");
+                ctx.reset();
+                
+                var R = 16; // radius
+                var w = width;
+                var h = height;
+
+                ctx.beginPath();
+                ctx.moveTo(2 * R, 0);
+                ctx.lineTo(w - 2 * R, 0);
+                ctx.arc(w - 2 * R, R, R, 1.5 * Math.PI, 0, false);
+                ctx.lineTo(w - R, h - R);
+                ctx.arc(w, h - R, R, 1.0 * Math.PI, 0.5 * Math.PI, true);
+                ctx.lineTo(0, h);
+                ctx.arc(0, h - R, R, 0.5 * Math.PI, 0, true);
+                ctx.lineTo(R, h - R);
+                ctx.lineTo(R, R);
+                ctx.arc(2 * R, R, R, 1.0 * Math.PI, 1.5 * Math.PI, false);
+                ctx.closePath();
+                
+                ctx.fillStyle = theme.bg0_hard;
+                ctx.fill();
+                
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = theme.bg1;
+                ctx.stroke();
+            }
 
             ColumnLayout {
                 anchors.fill: parent
                 anchors.topMargin: 16
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
-                anchors.bottomMargin: 32 // Offset the bottom-margin shift to keep list visible
+                anchors.leftMargin: 32 // Offset the concave corner width
+                anchors.rightMargin: 32 // Offset the concave corner width
+                anchors.bottomMargin: 32
                 spacing: 12
 
                 // Search Bar
@@ -264,7 +324,7 @@ PanelWindow {
 
                     delegate: Rectangle {
                         width: ListView.view.width
-                        height: 40
+                        height: model.isImage ? 80 : 40
                         radius: 6
                         color: index === historyListView.currentIndex ? theme.bg0 : "transparent"
                         border.color: index === historyListView.currentIndex ? theme.yellow : "transparent"
@@ -283,6 +343,17 @@ PanelWindow {
                                 font.pixelSize: 12
                                 font.bold: true
                                 font.family: "Monospace"
+                                Layout.alignment: Qt.AlignVCenter
+                            }
+
+                            Image {
+                                visible: model.isImage
+                                source: model.isImage ? model.previewPath : ""
+                                Layout.preferredWidth: 100
+                                Layout.preferredHeight: 72
+                                Layout.alignment: Qt.AlignVCenter
+                                fillMode: Image.PreserveAspectFit
+                                cache: false
                             }
 
                             Text {
@@ -297,6 +368,7 @@ PanelWindow {
                                 font.bold: index === historyListView.currentIndex
                                 font.family: "Monospace"
                                 elide: Text.ElideRight
+                                Layout.alignment: Qt.AlignVCenter
                             }
                         }
 

@@ -22,6 +22,7 @@ PanelWindow {
 
     onActiveChanged: {
         if (active) {
+            shellRoot.closeAllExcept(selectorWindow)
             selectorWindow.visible = true
             slideAnimation.from = selectorWindow.height + 20
             slideAnimation.to = 0

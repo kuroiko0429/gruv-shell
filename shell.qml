@@ -2,6 +2,7 @@
 // shell.qml
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Notifications
 import QtQuick
 
 ShellRoot {
@@ -66,13 +67,97 @@ ShellRoot {
             toggleThemeProc.running = true;
         }
     }
+    property var notificationHistory: []
+
+    function addHistory(notification) {
+        var list = [];
+        for (var i = 0; i < notificationHistory.length; i++) {
+            list.push(notificationHistory[i]);
+        }
+        var idx = -1;
+        for (var j = 0; j < list.length; j++) {
+            if (list[j].id === notification.id) {
+                idx = j;
+                break;
+            }
+        }
+        if (idx !== -1) {
+            list.splice(idx, 1);
+        }
+        
+        var item = {
+            id: notification.id,
+            appName: notification.appName,
+            appIcon: notification.appIcon,
+            image: notification.image,
+            summary: notification.summary,
+            body: notification.body,
+            timestamp: Qt.formatDateTime(new Date(), "HH:mm")
+        };
+        list.unshift(item);
+        notificationHistory = list;
+    }
+
+    function removeHistory(id) {
+        var list = [];
+        for (var i = 0; i < notificationHistory.length; i++) {
+            if (notificationHistory[i].id !== id) {
+                list.push(notificationHistory[i]);
+            }
+        }
+        notificationHistory = list;
+    }
+
+    function clearHistory() {
+        notificationHistory = [];
+    }
+
+    function closeAllExcept(currentWindow) {
+        let windows = [
+            wallpaperSelector,
+            appLauncher,
+            clipboardSelector,
+            powermenu,
+            musicPlayer,
+            batteryInfo,
+            powerProfileSelector,
+            wifiSelector,
+            brightnessSelector,
+            volumeSelector,
+            notificationStation
+        ];
+        for (let i = 0; i < windows.length; i++) {
+            let w = windows[i];
+            if (w && w !== currentWindow && w.active) {
+                w.active = false;
+            }
+        }
+    }
 
     StatusBar {}
     WallpaperHud {}
-    WallpaperSelector {}
-    AppLauncher {}
-    ClipboardSelector {}
-    Powermenu {}
+    WallpaperSelector { id: wallpaperSelector }
+    AppLauncher { id: appLauncher }
+    ClipboardSelector { id: clipboardSelector }
+    Powermenu { id: powermenu }
     ScreenCorners {}
-    MusicPlayer {}
+    MusicPlayer { id: musicPlayer }
+    BatteryInfo { id: batteryInfo }
+    PowerProfileSelector { id: powerProfileSelector }
+    WifiSelector { id: wifiSelector }
+    BrightnessSelector { id: brightnessSelector }
+    VolumeSelector { id: volumeSelector }
+    Notifications { id: notifications }
+    NotificationStation { id: notificationStation }
+
+    NotificationServer {
+        id: notifServer
+        onNotification: (notification) => {
+            notification.tracked = true;
+            shellRoot.addHistory(notification);
+            if (notifications) {
+                notifications.addNotification(notification);
+            }
+        }
+    }
 }
