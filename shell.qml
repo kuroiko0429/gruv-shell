@@ -68,6 +68,7 @@ ShellRoot {
         }
     }
     property var notificationHistory: []
+    property int notifCardRightMargin: 15
 
     function addHistory(notification) {
         var list = [];
@@ -95,6 +96,7 @@ ShellRoot {
             timestamp: Qt.formatDateTime(new Date(), "HH:mm")
         };
         list.unshift(item);
+        if (list.length > 100) list.length = 100;
         notificationHistory = list;
     }
 

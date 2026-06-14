@@ -10,7 +10,7 @@ PanelWindow {
     id: stationWindow
     anchors { top: true; right: true }
     margins.top: 35
-    margins.right: 10
+    margins.right: shellRoot.notifCardRightMargin
     implicitWidth: 320
     implicitHeight: 480
     color: "transparent"

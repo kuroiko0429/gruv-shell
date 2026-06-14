@@ -9,7 +9,7 @@ PanelWindow {
     id: brightnessWindow
     anchors { top: true; right: true }
     margins.top: 35
-    margins.right: 270 // Align under the brightness pill
+    margins.right: 440 // Align under the brightness pill
     implicitWidth: 260
     implicitHeight: 120
     color: "transparent"

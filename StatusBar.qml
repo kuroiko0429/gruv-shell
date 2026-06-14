@@ -1,4 +1,4 @@
-// StatusBar.qml
+//  StatusBar.qml
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -538,7 +538,7 @@ PanelWindow {
             Rectangle {
                 color: theme.bg0
                 radius: 6
-                implicitWidth: pwrText.implicitWidth + 20
+                implicitWidth: 90
                 implicitHeight: 24
 
                 Text {
@@ -611,35 +611,46 @@ PanelWindow {
 
             // バッテリー
             Rectangle {
+                id: batRect
                 color: theme.bg0
                 radius: 6
                 implicitWidth: batContent.implicitWidth + 20
                 implicitHeight: 24
+
+                property int batCapacity: -1
+                property string batStatus: ""
+
                 Row {
                     id: batContent
                     anchors.centerIn: parent
                     spacing: 4
                     Text {
                         id: batText
-                        text: "--%"
-                        color: theme.fg0
+                        text: batRect.batCapacity >= 0 ? batRect.batCapacity + "%" : "--%"
+                        color: {
+                            if (batRect.batStatus === "Charging" || batRect.batStatus === "Full") return theme.green
+                            if (batRect.batCapacity >= 0 && batRect.batCapacity <= 20) return theme.red
+                            return theme.fg0
+                        }
                         font.bold: true
                         font.pixelSize: 12
                     }
                 }
                 Process {
                     id: batProcess
-                    command: ["sh", "-c", "cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n 1"]
+                    command: ["sh", "-c", "echo $(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n 1) $(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n 1)"]
                     running: true
                     stdout: StdioCollector {
                         onStreamFinished: {
-                            let val = this.text.trim()
-                            batText.text = val !== "" ? val + "%" : "--%"
+                            let parts = this.text.trim().split(" ")
+                            let cap = parseInt(parts[0])
+                            if (!isNaN(cap)) batRect.batCapacity = cap
+                            if (parts[1]) batRect.batStatus = parts[1]
                         }
                     }
                 }
                 Timer {
-                    interval: 60000
+                    interval: 5000
                     running: true
                     repeat: true
                     onTriggered: {
@@ -662,13 +673,13 @@ PanelWindow {
                 id: notifStationBtn
                 color: theme.bg0
                 radius: 6
-                implicitWidth: notifStationText.implicitWidth + 20
+                implicitWidth: 85
                 implicitHeight: 24
 
                 Text {
                     id: notifStationText
                     anchors.centerIn: parent
-                    text: "🔔 " + shellRoot.notificationHistory.length
+                    text: "NOTIF " + shellRoot.notificationHistory.length
                     color: shellRoot.notificationHistory.length > 0 ? theme.yellow : theme.gray
                     font.bold: true
                     font.pixelSize: 12
@@ -681,6 +692,13 @@ PanelWindow {
                         Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "notificationStation", "toggle"])
                     }
                 }
+            }
+
+            // 通知カードの右マージンを時計幅から逆算してshellRootに伝える
+            Binding {
+                target: shellRoot
+                property: "notifCardRightMargin"
+                value: 15 + 8 + clockBackground.implicitWidth
             }
 
             // 時計

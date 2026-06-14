@@ -10,7 +10,7 @@ PanelWindow {
     id: volumeWindow
     anchors { top: true; right: true }
     margins.top: 35
-    margins.right: 350 // Align under the volume pill
+    margins.right: 510 // Align under the volume pill
     implicitWidth: 260
     implicitHeight: 120
     color: "transparent"

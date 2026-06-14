@@ -10,7 +10,7 @@ PanelWindow {
     id: wifiWindow
     anchors { top: true; right: true }
     margins.top: 35
-    margins.right: 170// Align under the Wi-Fi pill
+    margins.right: 320// Align under the Wi-Fi pill
     implicitWidth: 300
     implicitHeight: 380
     color: "transparent"

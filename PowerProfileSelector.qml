@@ -9,7 +9,7 @@ PanelWindow {
     id: powerProfileWindow
     anchors { top: true; right: true }
     margins.top: 35
-    margins.right: 100 // Align under the power profile pill
+    margins.right: 220 // Align under the power profile pill
     implicitWidth: 280
     implicitHeight: 170
     color: "transparent"

@@ -9,7 +9,7 @@ PanelWindow {
     id: batteryInfoWindow
     anchors { top: true; right: true }
     margins.top: 35
-    margins.right: 10 // Align under the battery pill
+    margins.right: 100 // Align under the battery pill
     implicitWidth: 240
     implicitHeight: 200
     color: "transparent"
