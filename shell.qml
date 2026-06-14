@@ -69,6 +69,8 @@ ShellRoot {
     }
     property var notificationHistory: []
     property int notifCardRightMargin: 15
+    property int systrayCardRightMargin: 640
+    onSystrayCardRightMarginChanged: console.log("[Systray] Card right margin changed to:", systrayCardRightMargin)
 
     function addHistory(notification) {
         var list = [];
@@ -126,7 +128,8 @@ ShellRoot {
             wifiSelector,
             brightnessSelector,
             volumeSelector,
-            notificationStation
+            notificationStation,
+            systraySelector
         ];
         for (let i = 0; i < windows.length; i++) {
             let w = windows[i];
@@ -151,6 +154,7 @@ ShellRoot {
     VolumeSelector { id: volumeSelector }
     Notifications { id: notifications }
     NotificationStation { id: notificationStation }
+    SystraySelector { id: systraySelector }
 
     NotificationServer {
         id: notifServer

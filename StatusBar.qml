@@ -275,82 +275,37 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 8
 
-            // システムトレイ
-            Row {
-                id: systray
-                spacing: 6
-                anchors.verticalCenter: parent.verticalCenter
-                visible: trayRepeater.count > 0
+            // システムトレイ切り替えボタン
+            Rectangle {
+                id: systrayBtn
+                color: theme.bg0
+                radius: 6
+                width: 24
+                height: 24
 
-                Repeater {
-                    id: trayRepeater
-                    model: SystemTray.items
-                    delegate: Rectangle {
-                        width: 24
-                        height: 24
-                        radius: 6
-                        color: theme.bg0
+                Text {
+                    anchors.centerIn: parent
+                    text: "^"
+                    color: theme.fg0
+                    font.bold: true
+                    font.pixelSize: 12
+                }
 
-                        Image {
-                            id: iconImage
-                            anchors.fill: parent
-                            anchors.margins: 4
-                            source: {
-                                let iconStr = modelData.icon;
-                                if (!iconStr) return "";
-                                if (iconStr.startsWith("/") || iconStr.startsWith("file://")) {
-                                    return iconStr.startsWith("/") ? "file://" + iconStr : iconStr;
-                                }
-                                let name = iconStr;
-                                if (iconStr.startsWith("image://icon/")) {
-                                    name = iconStr.substring(13);
-                                }
-                                let path = Quickshell.iconPath(name, true);
-                                if (!path) return "";
-                                if (path.startsWith("/image://")) return path.substring(1);
-                                if (path.startsWith("image://")) return path;
-                                return "file://" + path;
-                            }
-                            fillMode: Image.PreserveAspectFit
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: modelData.title ? modelData.title.substring(0, 1).toUpperCase() : "?"
-                            color: theme.fg0
-                            font.bold: true
-                            font.pixelSize: 10
-                            visible: iconImage.status !== Image.Ready
-                        }
-
-                        MouseArea {
-                            id: ma
-                            anchors.fill: parent
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton
-                            cursorShape: Qt.PointingHandCursor
-                            
-                            onClicked: mouse => {
-                                if (mouse.button === Qt.LeftButton) {
-                                    modelData.activate()
-                                } else if (mouse.button === Qt.RightButton && modelData.hasMenu) {
-                                    let pos = ma.mapToItem(null, mouse.x, mouse.y)
-                                    modelData.display(statusBarWindow, pos.x, pos.y)
-                                }
-                            }
-                        }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+                    onEntered: systrayBtn.color = theme.bg0_soft
+                    onExited: systrayBtn.color = theme.bg0
+                    onClicked: {
+                        Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "systraySelector", "toggle"])
                     }
                 }
             }
 
-            // トレイと他の項目の間の隙間
-            Item {
-                width: 4
-                height: 24
-                visible: trayRepeater.count > 0
-            }
-
             // スピーカー音量
             Rectangle {
+                id: volRect
                 color: theme.bg0
                 radius: 6
                 width: implicitWidth
@@ -536,6 +491,7 @@ PanelWindow {
 
             // パワープロファイル
             Rectangle {
+                id: pwrRect
                 color: theme.bg0
                 radius: 6
                 implicitWidth: 90
@@ -576,6 +532,7 @@ PanelWindow {
 
             // ライト/ダークモード切り替え
             Rectangle {
+                id: themeRect
                 color: theme.bg0
                 radius: 6
                 implicitWidth: themeText.implicitWidth + 20
@@ -699,6 +656,25 @@ PanelWindow {
                 target: shellRoot
                 property: "notifCardRightMargin"
                 value: 15 + 8 + clockBackground.implicitWidth
+            }
+
+            // システムトレイカードの右マージンを計算してshellRootに伝える
+            Binding {
+                target: shellRoot
+                property: "systrayCardRightMargin"
+                value: {
+                    let rWidth = 15 +
+                        clockBackground.implicitWidth + 8 +
+                        notifStationBtn.implicitWidth + 8 +
+                        batRect.implicitWidth + 8 +
+                        themeRect.implicitWidth + 8 +
+                        pwrRect.implicitWidth + 8 +
+                        wifiRoot.implicitWidth + 8 +
+                        briRoot.implicitWidth + 8 +
+                        volRect.implicitWidth + 8;
+                    // Center the 170px wide systray card under the 24px wide button
+                    return rWidth + 12 - 85;
+                }
             }
 
             // 時計
