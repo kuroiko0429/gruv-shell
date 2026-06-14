@@ -68,6 +68,7 @@ ShellRoot {
         }
     }
     property var notificationHistory: []
+    property bool dndEnabled: false
     property int notifCardRightMargin: 15
     property int systrayCardRightMargin: 640
     onSystrayCardRightMarginChanged: console.log("[Systray] Card right margin changed to:", systrayCardRightMargin)
@@ -129,7 +130,8 @@ ShellRoot {
             brightnessSelector,
             volumeSelector,
             notificationStation,
-            systraySelector
+            systraySelector,
+            systemResources
         ];
         for (let i = 0; i < windows.length; i++) {
             let w = windows[i];
@@ -155,13 +157,15 @@ ShellRoot {
     Notifications { id: notifications }
     NotificationStation { id: notificationStation }
     SystraySelector { id: systraySelector }
+    SystemResources { id: systemResources }
+    OSD { id: osd }
 
     NotificationServer {
         id: notifServer
         onNotification: (notification) => {
             notification.tracked = true;
             shellRoot.addHistory(notification);
-            if (notifications) {
+            if (!shellRoot.dndEnabled && notifications) {
                 notifications.addNotification(notification);
             }
         }

@@ -73,6 +73,57 @@ PanelWindow {
         activePowerProfile = nextProfile
     }
 
+    // --- Tmux 情報取得 ---
+    property string tmuxInfo: ""
+
+    Process {
+        id: tmuxProcess
+        command: ["tmux", "display-message", "-p", "#S:#W"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                tmuxInfo = this.text.trim()
+            }
+        }
+    }
+
+    Timer {
+        id: tmuxTimer
+        interval: 1000 // 1秒ごとに更新
+        running: {
+            let active = Hyprland.activeToplevel
+            if (!active) return false
+            let title = typeof active.title === "string" ? active.title.toLowerCase() : ""
+            let klass = active["class"]
+            let appId = active.appId
+            let className = ""
+            if (typeof klass === "string" && klass !== "") {
+                className = klass.toLowerCase();
+            } else if (typeof appId === "string" && appId !== "") {
+                className = appId.toLowerCase();
+            }
+            return title.indexOf("tmux") !== -1 || title === "kitty" || className === "kitty"
+        }
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            tmuxProcess.running = false
+            tmuxProcess.running = true
+        }
+    }
+
+    Connections {
+        target: Hyprland
+        function onActiveToplevelChanged() {
+            if (tmuxTimer.running) {
+                tmuxProcess.running = false
+                tmuxProcess.running = true
+            } else {
+                tmuxInfo = ""
+            }
+        }
+    }
+
     IpcHandler {
         target: "statusBar"
         function updatePowerProfile(profile: string): void {
@@ -122,13 +173,13 @@ PanelWindow {
         Row {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter // 縦の真ん中に揃える
-            spacing: 4
+            spacing: 8
                     
             Repeater {
                 model: 5 // 常に5つのワークスペースを表示 (1〜5)
                          
                 Rectangle {
-                    width: 40
+                    width: isFocused ? 56 : 40
                     height: 24
                     radius: 6
                     
@@ -136,6 +187,10 @@ PanelWindow {
                     property bool isFocused: wsId === Hyprland.focusedWorkspace?.id
 
                     color: isFocused ? theme.bg0 : theme.bg0_soft
+
+                    Behavior on width {
+                        NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+                    }
                   
                     Text {
                         anchors.centerIn: parent
@@ -159,12 +214,6 @@ PanelWindow {
                 }
             }
 
-            // ワークスペースと音楽の間の隙間
-            Item {
-                width: 8
-                height: 24
-                visible: activePlayer !== null && activePlayer.trackTitle !== ""
-            }
 
             // 音楽情報
             Rectangle {
@@ -245,7 +294,7 @@ PanelWindow {
         Rectangle {
             id: activeAppBg
             anchors.centerIn: parent
-            width: Math.min(250, activeAppText.implicitWidth + 20)
+            width: Math.min(320, activeAppText.implicitWidth + 20)
             height: 24
             color: theme.bg0
             radius: 6
@@ -259,13 +308,44 @@ PanelWindow {
                 id: activeAppText
                 anchors.centerIn: parent
                 width: parent.width - 20
-                text: Hyprland.activeToplevel ? 
-                        (Hyprland.activeToplevel.title !== "" ? Hyprland.activeToplevel.title : "タイトルなし") 
-                        : "デスクトップ"
+                text: {
+                    let active = Hyprland.activeToplevel
+                    if (!active) return "デスクトップ"
+                    
+                    let title = typeof active.title === "string" ? active.title : ""
+                    let titleLower = title.toLowerCase()
+                    let klass = active["class"]
+                    let appId = active.appId
+                    let className = ""
+                    if (typeof klass === "string" && klass !== "") {
+                        className = klass.toLowerCase();
+                    } else if (typeof appId === "string" && appId !== "") {
+                        className = appId.toLowerCase();
+                    }
+                    
+                    let isTerminal = titleLower === "kitty" || titleLower === "terminal" || titleLower === "tmux" || titleLower.indexOf("tmux") !== -1 || className === "kitty"
+                    
+                    if (isTerminal && tmuxInfo !== "") {
+                        return "TMUX: " + tmuxInfo
+                    }
+                    
+                    return title !== "" ? title : "タイトルなし"
+                }
                 color: theme.fg0
                 font.bold: true
                 elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                hoverEnabled: true
+                onEntered: activeAppBg.color = theme.bg0_soft
+                onExited: activeAppBg.color = theme.bg0
+                onClicked: {
+                    Quickshell.execDetached(["quickshell", "ipc", "-p", "/home/kuroiko/.config/quickshell/kuroiko_bar/", "call", "systemResources", "toggle"])
+                }
             }
         }
 
