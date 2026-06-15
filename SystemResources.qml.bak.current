@@ -844,36 +844,31 @@ PanelWindow {
                             ColumnLayout {
                                 anchors.fill: parent
                                 anchors.margins: 10
-                                spacing: 8
+                                spacing: 6
 
-                                // Title Row
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    Text {
-                                        text: "CONTROL CENTER"
-                                        color: theme.fg4
-                                        font.pixelSize: 10
-                                        font.bold: true
-                                        font.family: "Monospace"
-                                    }
+                                Text {
+                                    text: "CONTROL CENTER"
+                                    color: theme.fg4
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    font.family: "Monospace"
                                 }
 
+                                // Row 1: 6 Toggles (Left) + Mic Volume Slider (Right)
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Layout.fillHeight: true
                                     spacing: 12
 
-                                    // Left: 2x3 Grid of 6 Toggles
-                                    Grid {
-                                        columns: 2
-                                        spacing: 5
-                                        Layout.alignment: Qt.AlignVCenter
-
+                                    // Grid of 6 Toggles
+                                    RowLayout {
+                                        spacing: 3
+                                        
                                         // Wi-Fi
                                         Rectangle {
                                             width: 26; height: 26; radius: 13
                                             color: resourcesWindow.wifiEnabled ? theme.blue : theme.bg0
                                             border.color: theme.bg1; border.width: 1
+
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: resourcesWindow.wifiEnabled ? "󰤨" : "󰤭"
@@ -881,6 +876,7 @@ PanelWindow {
                                                 font.pixelSize: 11
                                                 color: resourcesWindow.wifiEnabled ? theme.bg0_hard : theme.fg4
                                             }
+
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
@@ -893,6 +889,7 @@ PanelWindow {
                                             width: 26; height: 26; radius: 13
                                             color: resourcesWindow.bluetoothEnabled ? theme.purple : theme.bg0
                                             border.color: theme.bg1; border.width: 1
+
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: resourcesWindow.bluetoothEnabled ? "󰂯" : "󰂲"
@@ -900,6 +897,7 @@ PanelWindow {
                                                 font.pixelSize: 11
                                                 color: resourcesWindow.bluetoothEnabled ? theme.bg0_hard : theme.fg4
                                             }
+
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
@@ -912,6 +910,7 @@ PanelWindow {
                                             width: 26; height: 26; radius: 13
                                             color: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? theme.red : theme.green
                                             border.color: theme.bg1; border.width: 1
+
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? "󰝟" : "󰓃"
@@ -919,6 +918,7 @@ PanelWindow {
                                                 font.pixelSize: 11
                                                 color: theme.bg0_hard
                                             }
+
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
@@ -931,6 +931,7 @@ PanelWindow {
                                             width: 26; height: 26; radius: 13
                                             color: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? theme.red : theme.yellow
                                             border.color: theme.bg1; border.width: 1
+
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? "󰍭" : "󰍬"
@@ -938,6 +939,7 @@ PanelWindow {
                                                 font.pixelSize: 11
                                                 color: theme.bg0_hard
                                             }
+
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
@@ -950,6 +952,7 @@ PanelWindow {
                                             width: 26; height: 26; radius: 13
                                             color: shellRoot.dndEnabled ? theme.orange : theme.bg0
                                             border.color: theme.bg1; border.width: 1
+
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: "󰂛"
@@ -957,6 +960,7 @@ PanelWindow {
                                                 font.pixelSize: 11
                                                 color: shellRoot.dndEnabled ? theme.bg0_hard : theme.fg4
                                             }
+
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
@@ -969,6 +973,7 @@ PanelWindow {
                                             width: 26; height: 26; radius: 13
                                             color: resourcesWindow.nightLightEnabled ? theme.orange : theme.bg0
                                             border.color: theme.bg1; border.width: 1
+
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: "󰖔"
@@ -976,6 +981,7 @@ PanelWindow {
                                                 font.pixelSize: 11
                                                 color: resourcesWindow.nightLightEnabled ? theme.bg0_hard : theme.fg4
                                             }
+
                                             MouseArea {
                                                 anchors.fill: parent
                                                 cursorShape: Qt.PointingHandCursor
@@ -984,242 +990,240 @@ PanelWindow {
                                         }
                                     }
 
-                                    // Right: Stack of 3 Sliders
-                                    ColumnLayout {
+                                    // Mic Volume Slider
+                                    RowLayout {
                                         Layout.fillWidth: true
-                                        Layout.fillHeight: true
-                                        spacing: 6
-                                        Layout.alignment: Qt.AlignVCenter
+                                        spacing: 4
 
-                                        // Slider 1: Speaker Volume
-                                        RowLayout {
+                                        Text {
+                                            text: "󰍬"
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            color: theme.fg2
+                                            font.pixelSize: 10
+                                            Layout.preferredWidth: 10
+                                        }
+
+                                        Rectangle {
+                                            id: micTrack
                                             Layout.fillWidth: true
-                                            spacing: 4
+                                            height: 4
+                                            radius: 2
+                                            color: theme.bg0
+                                            border.color: theme.bg1; border.width: 1
 
-                                            Text {
-                                                text: "󰓃"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                color: theme.fg2
-                                                font.pixelSize: 11
-                                                Layout.preferredWidth: 11
+                                            property real ratio: {
+                                                let source = resourcesWindow.audioSource
+                                                if (!source || !source.audio) return 0.0
+                                                return Math.max(0.0, Math.min(1.0, source.audio.volume))
                                             }
 
                                             Rectangle {
-                                                id: ccVolTrack
-                                                Layout.fillWidth: true
-                                                height: 4
+                                                height: parent.height
+                                                width: parent.width * parent.ratio
                                                 radius: 2
-                                                color: theme.bg0
-                                                border.color: theme.bg1; border.width: 1
-
-                                                property real volRatio: {
-                                                    let sink = resourcesWindow.audioSink
-                                                    if (!sink || !sink.audio) return 0.0
-                                                    return Math.max(0.0, Math.min(1.0, sink.audio.volume))
-                                                }
-
-                                                Rectangle {
-                                                    height: parent.height
-                                                    width: parent.width * parent.volRatio
-                                                    radius: 2
-                                                    color: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? theme.gray : theme.orange
-                                                }
-
-                                                Rectangle {
-                                                    x: (parent.width * parent.volRatio) - (width / 2)
-                                                    y: (parent.height / 2) - (height / 2)
-                                                    width: 6; height: 6; radius: 3
-                                                    color: ccVolMa.containsMouse ? theme.fg1 : theme.fg3
-                                                    border.color: theme.bg0_hard; border.width: 1
-                                                }
-
-                                                MouseArea {
-                                                    id: ccVolMa
-                                                    anchors.fill: parent
-                                                    hoverEnabled: true
-                                                    preventStealing: true
-
-                                                    function updateVal(mouse) {
-                                                        let ratio = Math.max(0.0, Math.min(1.0, mouse.x / width))
-                                                        let sink = resourcesWindow.audioSink
-                                                        if (sink && sink.audio) {
-                                                            sink.audio.volume = ratio
-                                                            if (ratio > 0.0 && sink.audio.muted) {
-                                                                sink.audio.muted = false
-                                                            }
-                                                        }
-                                                    }
-
-                                                    onPressed: (mouse) => updateVal(mouse)
-                                                    onPositionChanged: (mouse) => {
-                                                        if (pressed) updateVal(mouse)
-                                                    }
-                                                }
+                                                color: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? theme.gray : theme.aqua
                                             }
 
-                                            Text {
-                                                text: {
-                                                    let sink = resourcesWindow.audioSink
-                                                    if (!sink || !sink.audio) return "0%"
-                                                    if (sink.audio.muted) return "M"
-                                                    return Math.round(sink.audio.volume * 100) + "%"
+                                            Rectangle {
+                                                x: (parent.width * parent.ratio) - (width / 2)
+                                                y: (parent.height / 2) - (height / 2)
+                                                width: 6; height: 6; radius: 3
+                                                color: micMa.containsMouse ? theme.fg1 : theme.fg3
+                                                border.color: theme.bg0_hard; border.width: 1
+                                            }
+
+                                            MouseArea {
+                                                id: micMa
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                preventStealing: true
+
+                                                function updateVal(mouse) {
+                                                    let r = Math.max(0.0, Math.min(1.0, mouse.x / width))
+                                                    let source = resourcesWindow.audioSource
+                                                    if (source && source.audio) {
+                                                        source.audio.volume = r
+                                                        if (r > 0.0 && source.audio.muted) {
+                                                            source.audio.muted = false
+                                                        }
+                                                    }
                                                 }
-                                                color: theme.fg3
-                                                font.pixelSize: 8
-                                                font.bold: true
-                                                font.family: "Monospace"
-                                                Layout.preferredWidth: 20
-                                                horizontalAlignment: Text.AlignRight
+
+                                                onPressed: (mouse) => updateVal(mouse)
+                                                onPositionChanged: (mouse) => {
+                                                    if (pressed) updateVal(mouse)
+                                                }
                                             }
                                         }
 
-                                        // Slider 2: Mic Volume
-                                        RowLayout {
-                                            Layout.fillWidth: true
-                                            spacing: 4
+                                        Text {
+                                            text: {
+                                                let source = resourcesWindow.audioSource
+                                                if (!source || !source.audio) return "0%"
+                                                if (source.audio.muted) return "M"
+                                                return Math.round(source.audio.volume * 100) + "%"
+                                            }
+                                            color: theme.fg3
+                                            font.pixelSize: 8
+                                            font.bold: true
+                                            font.family: "Monospace"
+                                            Layout.preferredWidth: 20
+                                            horizontalAlignment: Text.AlignRight
+                                        }
+                                    }
+                                }
 
-                                            Text {
-                                                text: "󰍬"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                color: theme.fg2
-                                                font.pixelSize: 11
-                                                Layout.preferredWidth: 11
+                                // Row 2: Speaker Volume Slider & Brightness Slider side-by-side
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 12
+
+                                    // Speaker Volume Slider (Left)
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 4
+
+                                        Text {
+                                            text: "󰓃"
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            color: theme.fg2
+                                            font.pixelSize: 11
+                                            Layout.preferredWidth: 11
+                                        }
+
+                                        Rectangle {
+                                            id: ccVolTrack
+                                            Layout.fillWidth: true
+                                            height: 4
+                                            radius: 2
+                                            color: theme.bg0
+                                            border.color: theme.bg1; border.width: 1
+
+                                            property real volRatio: {
+                                                let sink = resourcesWindow.audioSink
+                                                if (!sink || !sink.audio) return 0.0
+                                                return Math.max(0.0, Math.min(1.0, sink.audio.volume))
                                             }
 
                                             Rectangle {
-                                                id: micTrack
-                                                Layout.fillWidth: true
-                                                height: 4
+                                                height: parent.height
+                                                width: parent.width * parent.volRatio
                                                 radius: 2
-                                                color: theme.bg0
-                                                border.color: theme.bg1; border.width: 1
-
-                                                property real ratio: {
-                                                    let source = resourcesWindow.audioSource
-                                                    if (!source || !source.audio) return 0.0
-                                                    return Math.max(0.0, Math.min(1.0, source.audio.volume))
-                                                }
-
-                                                Rectangle {
-                                                    height: parent.height
-                                                    width: parent.width * parent.ratio
-                                                    radius: 2
-                                                    color: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? theme.gray : theme.aqua
-                                                }
-
-                                                Rectangle {
-                                                    x: (parent.width * parent.ratio) - (width / 2)
-                                                    y: (parent.height / 2) - (height / 2)
-                                                    width: 6; height: 6; radius: 3
-                                                    color: micMa.containsMouse ? theme.fg1 : theme.fg3
-                                                    border.color: theme.bg0_hard; border.width: 1
-                                                }
-
-                                                MouseArea {
-                                                    id: micMa
-                                                    anchors.fill: parent
-                                                    hoverEnabled: true
-                                                    preventStealing: true
-
-                                                    function updateVal(mouse) {
-                                                        let r = Math.max(0.0, Math.min(1.0, mouse.x / width))
-                                                        let source = resourcesWindow.audioSource
-                                                        if (source && source.audio) {
-                                                            source.audio.volume = r
-                                                            if (r > 0.0 && source.audio.muted) {
-                                                                source.audio.muted = false
-                                                            }
-                                                        }
-                                                    }
-
-                                                    onPressed: (mouse) => updateVal(mouse)
-                                                    onPositionChanged: (mouse) => {
-                                                        if (pressed) updateVal(mouse)
-                                                    }
-                                                }
+                                                color: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? theme.gray : theme.orange
                                             }
 
-                                            Text {
-                                                text: {
-                                                    let source = resourcesWindow.audioSource
-                                                    if (!source || !source.audio) return "0%"
-                                                    if (source.audio.muted) return "M"
-                                                    return Math.round(source.audio.volume * 100) + "%"
+                                            Rectangle {
+                                                x: (parent.width * parent.volRatio) - (width / 2)
+                                                y: (parent.height / 2) - (height / 2)
+                                                width: 6; height: 6; radius: 3
+                                                color: ccVolMa.containsMouse ? theme.fg1 : theme.fg3
+                                                border.color: theme.bg0_hard; border.width: 1
+                                            }
+
+                                            MouseArea {
+                                                id: ccVolMa
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                preventStealing: true
+
+                                                function updateVal(mouse) {
+                                                    let ratio = Math.max(0.0, Math.min(1.0, mouse.x / width))
+                                                    let sink = resourcesWindow.audioSink
+                                                    if (sink && sink.audio) {
+                                                        sink.audio.volume = ratio
+                                                        if (ratio > 0.0 && sink.audio.muted) {
+                                                            sink.audio.muted = false
+                                                        }
+                                                    }
                                                 }
-                                                color: theme.fg3
-                                                font.pixelSize: 8
-                                                font.bold: true
-                                                font.family: "Monospace"
-                                                Layout.preferredWidth: 20
-                                                horizontalAlignment: Text.AlignRight
+
+                                                onPressed: (mouse) => updateVal(mouse)
+                                                onPositionChanged: (mouse) => {
+                                                    if (pressed) updateVal(mouse)
+                                                }
                                             }
                                         }
 
-                                        // Slider 3: Brightness
-                                        RowLayout {
-                                            Layout.fillWidth: true
-                                            spacing: 4
+                                        Text {
+                                            text: {
+                                                let sink = resourcesWindow.audioSink
+                                                if (!sink || !sink.audio) return "0%"
+                                                if (sink.audio.muted) return "M"
+                                                return Math.round(sink.audio.volume * 100) + "%"
+                                            }
+                                            color: theme.fg3
+                                            font.pixelSize: 8
+                                            font.bold: true
+                                            font.family: "Monospace"
+                                            Layout.preferredWidth: 20
+                                            horizontalAlignment: Text.AlignRight
+                                        }
+                                    }
 
-                                            Text {
-                                                text: "󰖨"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                color: theme.fg2
-                                                font.pixelSize: 11
-                                                Layout.preferredWidth: 11
+                                    // Brightness Slider (Right)
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 4
+
+                                        Text {
+                                            text: "󰖨"
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            color: theme.fg2
+                                            font.pixelSize: 11
+                                            Layout.preferredWidth: 11
+                                        }
+
+                                        Rectangle {
+                                            id: ccBriTrack
+                                            Layout.fillWidth: true
+                                            height: 4
+                                            radius: 2
+                                            color: theme.bg0
+                                            border.color: theme.bg1; border.width: 1
+
+                                            property real briRatio: resourcesWindow.brightnessVal / 100.0
+
+                                            Rectangle {
+                                                height: parent.height
+                                                width: parent.width * parent.briRatio
+                                                radius: 2
+                                                color: theme.bg1
                                             }
 
                                             Rectangle {
-                                                id: ccBriTrack
-                                                Layout.fillWidth: true
-                                                height: 4
-                                                radius: 2
-                                                color: theme.bg0
-                                                border.color: theme.bg1; border.width: 1
-
-                                                property real briRatio: resourcesWindow.brightnessVal / 100.0
-
-                                                Rectangle {
-                                                    height: parent.height
-                                                    width: parent.width * parent.briRatio
-                                                    radius: 2
-                                                    color: theme.bg1
-                                                }
-
-                                                Rectangle {
-                                                    x: (parent.width * parent.briRatio) - (width / 2)
-                                                    y: (parent.height / 2) - (height / 2)
-                                                    width: 6; height: 6; radius: 3
-                                                    color: ccBriMa.containsMouse ? theme.fg1 : theme.fg3
-                                                    border.color: theme.bg0_hard; border.width: 1
-                                                }
-
-                                                MouseArea {
-                                                    id: ccBriMa
-                                                    anchors.fill: parent
-                                                    hoverEnabled: true
-                                                    preventStealing: true
-
-                                                    function updateVal(mouse) {
-                                                        let ratio = Math.max(0.0, Math.min(1.0, mouse.x / width))
-                                                        resourcesWindow.setBrightness(Math.round(ratio * 100))
-                                                    }
-
-                                                    onPressed: (mouse) => updateVal(mouse)
-                                                    onPositionChanged: (mouse) => {
-                                                        if (pressed) updateVal(mouse)
-                                                    }
-                                                }
+                                                x: (parent.width * parent.briRatio) - (width / 2)
+                                                y: (parent.height / 2) - (height / 2)
+                                                width: 6; height: 6; radius: 3
+                                                color: ccBriMa.containsMouse ? theme.fg1 : theme.fg3
+                                                border.color: theme.bg0_hard; border.width: 1
                                             }
 
-                                            Text {
-                                                text: resourcesWindow.brightnessVal + "%"
-                                                color: theme.fg3
-                                                font.pixelSize: 8
-                                                font.bold: true
-                                                font.family: "Monospace"
-                                                Layout.preferredWidth: 20
-                                                horizontalAlignment: Text.AlignRight
+                                            MouseArea {
+                                                id: ccBriMa
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                preventStealing: true
+
+                                                function updateVal(mouse) {
+                                                    let ratio = Math.max(0.0, Math.min(1.0, mouse.x / width))
+                                                    resourcesWindow.setBrightness(Math.round(ratio * 100))
+                                                }
+
+                                                onPressed: (mouse) => updateVal(mouse)
+                                                onPositionChanged: (mouse) => {
+                                                    if (pressed) updateVal(mouse)
+                                                }
                                             }
+                                        }
+
+                                        Text {
+                                            text: resourcesWindow.brightnessVal + "%"
+                                            color: theme.fg3
+                                            font.pixelSize: 8
+                                            font.bold: true
+                                            font.family: "Monospace"
+                                            Layout.preferredWidth: 20
+                                            horizontalAlignment: Text.AlignRight
                                         }
                                     }
                                 }
@@ -1375,703 +1379,697 @@ PanelWindow {
                     }
 
                     // ================= RIGHT COLUMN =================
-                    RowLayout {
+                    ColumnLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         spacing: 12
 
-                        // Card 4: CALENDAR & TASKS (orange box) - stretched to full height (354)
-                        Rectangle {
-                            Layout.preferredWidth: 312
-                            Layout.fillHeight: true
-                            color: theme.bg0_soft
-                            radius: 8
-                            border.color: theme.bg1
-                            border.width: 1
+                        // ROW 1: CALENDAR & TASKS (orange box), TO-DO MEMO, TOP PROCESSES
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 242
+                            spacing: 12
 
-                            ColumnLayout {
-                                anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 6
+                            // Card 4: CALENDAR & TASKS
+                            Rectangle {
+                                Layout.preferredWidth: 312
+                                Layout.fillHeight: true
+                                color: theme.bg0_soft
+                                radius: 8
+                                border.color: theme.bg1
+                                border.width: 1
 
-                                Text {
-                                    text: "CALENDAR & TASKS"
-                                    color: theme.fg4
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                    font.family: "Monospace"
-                                }
+                                ColumnLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 10
+                                    spacing: 6
 
-                                // Orange bordered sub-card containing Weather & Calendar + Selected Note
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    color: {
-                                        let isDark = theme.mode === "dark";
-                                        return isDark ? "#322d29" : "#fbf2e6";
+                                    Text {
+                                        text: "CALENDAR & TASKS"
+                                        color: theme.fg4
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        font.family: "Monospace"
                                     }
-                                    radius: 8
-                                    border.color: theme.orange
-                                    border.width: 1
 
-                                    ColumnLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 8
-                                        spacing: 6
-
-                                        // Stacked Weather Section
-                                        ColumnLayout {
-                                            Layout.fillWidth: true
-                                            spacing: 4
-                                            Layout.alignment: Qt.AlignHCenter
-
-                                            RowLayout {
-                                                spacing: 8
-                                                Layout.alignment: Qt.AlignHCenter
-                                                Text {
-                                                    text: weatherEmoji
-                                                    font.pixelSize: 28
-                                                    color: theme.fg0
-                                                }
-                                                Text {
-                                                    text: weatherTemp.toFixed(1) + "°C"
-                                                    color: theme.fg1
-                                                    font.pixelSize: 20
-                                                    font.bold: true
-                                                    font.family: "Monospace"
-                                                }
-                                                Text {
-                                                    text: weatherDesc
-                                                    color: theme.fg3
-                                                    font.pixelSize: 11
-                                                    font.bold: true
-                                                    font.family: "Monospace"
-                                                }
-                                            }
-
-                                            RowLayout {
-                                                spacing: 4
-                                                Layout.alignment: Qt.AlignHCenter
-                                                Text {
-                                                    text: "📍"
-                                                    font.pixelSize: 10
-                                                }
-                                                Text {
-                                                    text: weatherCity
-                                                    color: theme.fg4
-                                                    font.pixelSize: 10
-                                                    font.family: "Monospace"
-                                                    elide: Text.ElideRight
-                                                    Layout.maximumWidth: 200
-                                                }
-                                            }
+                                    // Orange bordered sub-card containing Weather & Calendar + Selected Note
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        color: {
+                                            let isDark = theme.mode === "dark";
+                                            return isDark ? "#322d29" : "#fbf2e6";
                                         }
+                                        radius: 8
+                                        border.color: theme.orange
+                                        border.width: 1
 
-                                        // Horizontal Separator
-                                        Rectangle {
-                                            Layout.fillWidth: true
-                                            height: 1
-                                            color: theme.bg1
-                                        }
-
-                                        // Calendar Column
                                         ColumnLayout {
-                                            Layout.fillWidth: true
-                                            Layout.fillHeight: true
-                                            spacing: 3
-                                            Layout.alignment: Qt.AlignVCenter
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 6
 
-                                            // Month Navigation Row
+                                            // Weather (Left) & Calendar (Right) side-by-side
                                             RowLayout {
                                                 Layout.fillWidth: true
-                                                spacing: 3
+                                                Layout.fillHeight: true
+                                                spacing: 8
 
-                                                Item {
-                                                    width: 30
-                                                    height: 20
-                                                    visible: (viewedYear !== todayYear || viewedMonth !== todayMonth)
-                                                }
-
-                                                Rectangle {
-                                                    width: 20
-                                                    height: 20
-                                                    radius: 3
-                                                    color: prevHover.containsMouse ? theme.bg1 : "transparent"
+                                                // Weather Column
+                                                ColumnLayout {
+                                                    Layout.preferredWidth: 85
+                                                    Layout.fillHeight: true
+                                                    spacing: 4
+                                                    Layout.alignment: Qt.AlignVCenter
 
                                                     Text {
-                                                        anchors.centerIn: parent
-                                                        text: "◀"
-                                                        color: prevHover.containsMouse ? theme.fg1 : theme.fg4
-                                                        font.pixelSize: 11
+                                                        text: weatherEmoji
+                                                        font.pixelSize: 30
+                                                        Layout.alignment: Qt.AlignHCenter
                                                     }
-
-                                                    MouseArea {
-                                                        id: prevHover
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: prevMonth()
-                                                    }
-                                                }
-
-                                                Text {
-                                                    Layout.fillWidth: true
-                                                    text: `${viewedYear}年 ${viewedMonth + 1}月`
-                                                    color: theme.fg2
-                                                    font.pixelSize: 12
-                                                    font.bold: true
-                                                    font.family: "Monospace"
-                                                    horizontalAlignment: Text.AlignHCenter
-                                                }
-
-                                                Rectangle {
-                                                    width: 20
-                                                    height: 20
-                                                    radius: 3
-                                                    color: nextHover.containsMouse ? theme.bg1 : "transparent"
 
                                                     Text {
-                                                        anchors.centerIn: parent
-                                                        text: "▶"
-                                                        color: nextHover.containsMouse ? theme.fg1 : theme.fg4
-                                                        font.pixelSize: 11
+                                                        text: weatherTemp.toFixed(1) + "°C"
+                                                        color: theme.fg1
+                                                        font.pixelSize: 16
+                                                        font.bold: true
+                                                        font.family: "Monospace"
+                                                        Layout.alignment: Qt.AlignHCenter
                                                     }
-
-                                                    MouseArea {
-                                                        id: nextHover
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: nextMonth()
-                                                    }
-                                                }
-
-                                                // Today Button
-                                                Rectangle {
-                                                    width: 28
-                                                    height: 20
-                                                    radius: 3
-                                                    color: todayBtnHover.containsMouse ? theme.bg1 : "transparent"
-                                                    visible: (viewedYear !== todayYear || viewedMonth !== todayMonth)
 
                                                     Text {
-                                                        anchors.centerIn: parent
-                                                        text: "今日"
-                                                        color: todayBtnHover.containsMouse ? theme.fg1 : theme.fg4
+                                                        text: weatherDesc
+                                                        color: theme.fg2
                                                         font.pixelSize: 10
                                                         font.bold: true
+                                                        font.family: "Monospace"
+                                                        Layout.alignment: Qt.AlignHCenter
                                                     }
 
-                                                    MouseArea {
-                                                        id: todayBtnHover
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: jumpToToday()
-                                                    }
-                                                }
-                                            }
-
-                                            // Days Grid
-                                            Grid {
-                                                columns: 7
-                                                spacing: 2
-                                                Layout.alignment: Qt.AlignHCenter
-
-                                                Repeater {
-                                                    model: ["日", "月", "火", "水", "木", "金", "土"]
-                                                    delegate: Text {
-                                                        text: modelData
-                                                        color: modelData === "日" ? theme.red : (modelData === "土" ? theme.blue : theme.fg4)
-                                                        font.pixelSize: 11
-                                                        font.bold: true
-                                                        width: 30
+                                                    Text {
+                                                        text: weatherCity
+                                                        color: theme.fg4
+                                                        font.pixelSize: 9
+                                                        font.family: "Monospace"
+                                                        elide: Text.ElideRight
+                                                        Layout.preferredWidth: 75
                                                         horizontalAlignment: Text.AlignHCenter
                                                     }
                                                 }
 
-                                                Repeater {
-                                                    model: calendarModel
-                                                    delegate: Rectangle {
-                                                        width: 30
-                                                        height: 20
-                                                        radius: 4
-                                                        color: model.isToday ? theme.yellow : "transparent"
-                                                        border.color: (selectedDateStr === model.dateStr) ? theme.orange : "transparent"
-                                                        border.width: (selectedDateStr === model.dateStr) ? 1.5 : 0
+                                                // Vertical Separator
+                                                Rectangle {
+                                                    Layout.fillHeight: true
+                                                    width: 1
+                                                    color: theme.bg1
+                                                }
+
+                                                // Calendar Column
+                                                ColumnLayout {
+                                                    Layout.fillWidth: true
+                                                    Layout.fillHeight: true
+                                                    spacing: 3
+                                                    Layout.alignment: Qt.AlignVCenter
+
+                                                    // Month Navigation Row
+                                                    RowLayout {
+                                                        Layout.fillWidth: true
+                                                        spacing: 3
+
+                                                        Item {
+                                                            width: 24
+                                                            height: 16
+                                                            visible: (viewedYear !== todayYear || viewedMonth !== todayMonth)
+                                                        }
+
+                                                        Rectangle {
+                                                            width: 16
+                                                            height: 16
+                                                            radius: 3
+                                                            color: prevHover.containsMouse ? theme.bg1 : "transparent"
+
+                                                            Text {
+                                                                anchors.centerIn: parent
+                                                                text: "◀"
+                                                                color: prevHover.containsMouse ? theme.fg1 : theme.fg4
+                                                                font.pixelSize: 8
+                                                            }
+
+                                                            MouseArea {
+                                                                id: prevHover
+                                                                anchors.fill: parent
+                                                                hoverEnabled: true
+                                                                cursorShape: Qt.PointingHandCursor
+                                                                onClicked: prevMonth()
+                                                            }
+                                                        }
 
                                                         Text {
-                                                            anchors.centerIn: parent
-                                                            text: model.day
-                                                            color: model.isToday ? theme.bg0_hard : (model.isCurrentMonth ? theme.fg1 : theme.fg4)
-                                                            font.pixelSize: 12
-                                                            font.bold: model.isToday
+                                                            Layout.fillWidth: true
+                                                            text: `${viewedYear}年 ${viewedMonth + 1}月`
+                                                            color: theme.fg2
+                                                            font.pixelSize: 10
+                                                            font.bold: true
                                                             font.family: "Monospace"
+                                                            horizontalAlignment: Text.AlignHCenter
                                                         }
 
-                                                        // Event dot indicator
                                                         Rectangle {
-                                                            width: 4
-                                                            height: 4
-                                                            radius: 2
-                                                            color: theme.green
-                                                            visible: model.hasEvent
-                                                            anchors.bottom: parent.bottom
-                                                            anchors.bottomMargin: 2
-                                                            anchors.horizontalCenter: parent.horizontalCenter
+                                                            width: 16
+                                                            height: 16
+                                                            radius: 3
+                                                            color: nextHover.containsMouse ? theme.bg1 : "transparent"
+
+                                                            Text {
+                                                                anchors.centerIn: parent
+                                                                text: "▶"
+                                                                color: nextHover.containsMouse ? theme.fg1 : theme.fg4
+                                                                font.pixelSize: 8
+                                                            }
+
+                                                            MouseArea {
+                                                                id: nextHover
+                                                                anchors.fill: parent
+                                                                hoverEnabled: true
+                                                                cursorShape: Qt.PointingHandCursor
+                                                                onClicked: nextMonth()
+                                                            }
                                                         }
 
-                                                        MouseArea {
-                                                            anchors.fill: parent
-                                                            cursorShape: Qt.PointingHandCursor
-                                                            onClicked: {
-                                                                let parts = model.dateStr.split('-')
-                                                                let clickedYear = parseInt(parts[0], 10)
-                                                                let clickedMonth = parseInt(parts[1], 10) - 1 // 0-indexed
-                                                                
-                                                                selectedDateStr = model.dateStr
-                                                                selectedDateLabel = parseInt(parts[1], 10) + "/" + parseInt(parts[2], 10)
-                                                                selectedDateNote = calendarEvents[model.dateStr] || ""
-                                                                
-                                                                if (clickedYear !== viewedYear || clickedMonth !== viewedMonth) {
-                                                                    viewedYear = clickedYear
-                                                                    viewedMonth = clickedMonth
+                                                        // Today Button
+                                                        Rectangle {
+                                                            width: 24
+                                                            height: 16
+                                                            radius: 3
+                                                            color: todayBtnHover.containsMouse ? theme.bg1 : "transparent"
+                                                            visible: (viewedYear !== todayYear || viewedMonth !== todayMonth)
+
+                                                            Text {
+                                                                anchors.centerIn: parent
+                                                                text: "今日"
+                                                                color: todayBtnHover.containsMouse ? theme.fg1 : theme.fg4
+                                                                font.pixelSize: 8
+                                                                font.bold: true
+                                                            }
+
+                                                            MouseArea {
+                                                                id: todayBtnHover
+                                                                anchors.fill: parent
+                                                                hoverEnabled: true
+                                                                cursorShape: Qt.PointingHandCursor
+                                                                onClicked: jumpToToday()
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // Days Grid
+                                                    Grid {
+                                                        columns: 7
+                                                        spacing: 2
+                                                        Layout.alignment: Qt.AlignHCenter
+
+                                                        Repeater {
+                                                            model: ["日", "月", "火", "水", "木", "金", "土"]
+                                                            delegate: Text {
+                                                                text: modelData
+                                                                color: modelData === "日" ? theme.red : (modelData === "土" ? theme.blue : theme.fg4)
+                                                                font.pixelSize: 9
+                                                                font.bold: true
+                                                                width: 24
+                                                                horizontalAlignment: Text.AlignHCenter
+                                                            }
+                                                        }
+
+                                                        Repeater {
+                                                            model: calendarModel
+                                                            delegate: Rectangle {
+                                                                width: 24
+                                                                height: 16
+                                                                radius: 3
+                                                                color: model.isToday ? theme.yellow : "transparent"
+                                                                border.color: (selectedDateStr === model.dateStr) ? theme.orange : "transparent"
+                                                                border.width: (selectedDateStr === model.dateStr) ? 1.5 : 0
+
+                                                                Text {
+                                                                    anchors.centerIn: parent
+                                                                    text: model.day
+                                                                    color: model.isToday ? theme.bg0_hard : (model.isCurrentMonth ? theme.fg1 : theme.fg4)
+                                                                    font.pixelSize: 10
+                                                                    font.bold: model.isToday
+                                                                    font.family: "Monospace"
+                                                                }
+
+                                                                // Event dot indicator
+                                                                Rectangle {
+                                                                    width: 3
+                                                                    height: 3
+                                                                    radius: 1.5
+                                                                    color: theme.green
+                                                                    visible: model.hasEvent
+                                                                    anchors.bottom: parent.bottom
+                                                                    anchors.bottomMargin: 1
+                                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                                }
+
+                                                                MouseArea {
+                                                                    anchors.fill: parent
+                                                                    cursorShape: Qt.PointingHandCursor
+                                                                    onClicked: {
+                                                                        let parts = model.dateStr.split('-')
+                                                                        let clickedYear = parseInt(parts[0], 10)
+                                                                        let clickedMonth = parseInt(parts[1], 10) - 1 // 0-indexed
+                                                                        
+                                                                        selectedDateStr = model.dateStr
+                                                                        selectedDateLabel = parseInt(parts[1], 10) + "/" + parseInt(parts[2], 10)
+                                                                        selectedDateNote = calendarEvents[model.dateStr] || ""
+                                                                        
+                                                                        if (clickedYear !== viewedYear || clickedMonth !== viewedMonth) {
+                                                                            viewedYear = clickedYear
+                                                                            viewedMonth = clickedMonth
+                                                                        }
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
 
-                                        // Divider
-                                        Rectangle {
-                                            Layout.fillWidth: true
-                                            height: 1
-                                            color: theme.bg1
-                                        }
-
-                                        // Selected Day Event Editor
-                                        RowLayout {
-                                            Layout.fillWidth: true
-                                            spacing: 8
-                                            
-                                            Text {
-                                                text: "📅 " + selectedDateLabel + " 予定:"
-                                                color: theme.fg2
-                                                font.pixelSize: 12
-                                                font.bold: true
-                                                font.family: "Monospace"
-                                            }
-                                            
+                                            // Divider
                                             Rectangle {
                                                 Layout.fillWidth: true
-                                                height: 26
-                                                color: theme.bg0
-                                                radius: 6
-                                                border.color: eventInput.activeFocus ? theme.orange : theme.bg1
-                                                border.width: 1
-                                                
-                                                TextInput {
-                                                    id: eventInput
-                                                    anchors.left: parent.left
-                                                    anchors.top: parent.top
-                                                    anchors.bottom: parent.bottom
-                                                    anchors.right: parent.right
-                                                    anchors.leftMargin: 6
-                                                    anchors.rightMargin: clearBtn.visible ? 26 : 6
-                                                    verticalAlignment: TextInput.AlignVCenter
-                                                    color: theme.fg1
-                                                    font.pixelSize: 12
-                                                    font.family: "Monospace"
-                                                    selectByMouse: true
-                                                    text: selectedDateNote
-                                                    
-                                                    Text {
-                                                        text: "予定なし"
-                                                        color: theme.fg4
-                                                        font.pixelSize: 12
-                                                        font.family: "Monospace"
-                                                        visible: !parent.text && !parent.activeFocus
-                                                        anchors.fill: parent
-                                                        verticalAlignment: Text.AlignVCenter
-                                                    }
-                                                    
-                                                    onAccepted: {
-                                                        saveCalendarEvent(selectedDateStr, text.trim())
-                                                        focus = false
-                                                    }
-                                                }
-                                                
-                                                Item {
-                                                    id: clearBtn
-                                                    anchors.right: parent.right
-                                                    anchors.top: parent.top
-                                                    anchors.bottom: parent.bottom
-                                                    width: 26
-                                                    visible: eventInput.text !== ""
-                                                    
-                                                    Text {
-                                                        anchors.centerIn: parent
-                                                        text: "×"
-                                                        color: theme.red
-                                                        font.pixelSize: 13
-                                                        font.bold: true
-                                                    }
-                                                    
-                                                    MouseArea {
-                                                        anchors.fill: parent
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: {
-                                                            eventInput.text = ""
-                                                            saveCalendarEvent(selectedDateStr, "")
-                                                            eventInput.focus = false
-                                                        }
-                                                    }
-                                                }
+                                                height: 1
+                                                color: theme.bg1
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
 
-                        // Right side ColumnLayout (width: 412, height: 354) containing TO-DO + TOP PROCESSES and ACTIVITY MONITOR
-                        ColumnLayout {
-                            Layout.preferredWidth: 412
-                            Layout.fillHeight: true
-                            spacing: 12
-
-                            // Row for TO-DO MEMO and TOP PROCESSES (height: 212)
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 212
-                                spacing: 12
-
-                                // Card 5: TO-DO MEMO
-                                Rectangle {
-                                    Layout.preferredWidth: 200
-                                    Layout.fillHeight: true
-                                    color: theme.bg0_soft
-                                    radius: 8
-                                    border.color: theme.bg1
-                                    border.width: 1
-
-                                    ColumnLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        spacing: 6
-
-                                        RowLayout {
-                                            Layout.fillWidth: true
-                                            Text {
-                                                text: "TO-DO MEMO"
-                                                color: theme.fg4
-                                                font.pixelSize: 10
-                                                font.bold: true
-                                                font.family: "Monospace"
-                                            }
-                                            Item { Layout.fillWidth: true }
-                                            
-                                            // CLEAR Button
-                                            Item {
-                                                width: 50
-                                                height: 18
+                                            // Selected Day Event Editor
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: 6
                                                 
                                                 Text {
-                                                    anchors.centerIn: parent
-                                                    text: "✓ CLEAR"
-                                                    color: theme.red
+                                                    text: "📅 " + selectedDateLabel + " 予定:"
+                                                    color: theme.fg2
                                                     font.pixelSize: 9
                                                     font.bold: true
                                                     font.family: "Monospace"
                                                 }
                                                 
-                                                MouseArea {
-                                                    anchors.fill: parent
-                                                    cursorShape: Qt.PointingHandCursor
-                                                    onClicked: clearCompletedTodos()
-                                                }
-                                            }
-                                        }
-
-                                        // Todo List
-                                        ScrollView {
-                                            Layout.fillWidth: true
-                                            Layout.fillHeight: true
-                                            clip: true
-                                            
-                                            ColumnLayout {
-                                                width: parent.availableWidth
-                                                spacing: 4
-                                                
-                                                Repeater {
-                                                    model: todoModel
-                                                    delegate: RowLayout {
-                                                        Layout.fillWidth: true
-                                                        Layout.rightMargin: 6
-                                                        spacing: 6
-                                                        
-                                                        Item {
-                                                            width: 16
-                                                            height: 16
-                                                            
-                                                            Rectangle {
-                                                                anchors.centerIn: parent
-                                                                width: 12; height: 12; radius: 2
-                                                                color: model.completed ? theme.green : "transparent"
-                                                                border.color: model.completed ? theme.green : (model.priority === 3 ? theme.red : (model.priority === 2 ? theme.yellow : (model.priority === 1 ? theme.blue : theme.fg4)))
-                                                                border.width: 1
-                                                                
-                                                                Text {
-                                                                    anchors.centerIn: parent
-                                                                    text: model.completed ? "✓" : ""
-                                                                    color: theme.bg0_soft
-                                                                    font.bold: true
-                                                                    font.pixelSize: 9
-                                                                }
-                                                            }
-
-                                                            MouseArea {
-                                                                anchors.fill: parent
-                                                                cursorShape: Qt.PointingHandCursor
-                                                                onClicked: toggleTodo(model.id)
-                                                            }
-                                                        }
-
-                                                        Text {
-                                                            text: model.text
-                                                            color: model.completed ? theme.fg4 : theme.fg1
-                                                            font.pixelSize: 11
-                                                            font.family: "Monospace"
-                                                            font.strikeout: model.completed
-                                                            elide: Text.ElideRight
-                                                            Layout.fillWidth: true
-                                                            
-                                                            MouseArea {
-                                                                anchors.fill: parent
-                                                                cursorShape: Qt.PointingHandCursor
-                                                                onClicked: toggleTodo(model.id)
-                                                            }
-                                                        }
-                                                        
-                                                        Item {
-                                                            width: 16
-                                                            height: 16
-                                                            
-                                                            Text {
-                                                                anchors.centerIn: parent
-                                                                text: "×"
-                                                                color: theme.red
-                                                                font.bold: true
-                                                                font.pixelSize: 11
-                                                            }
-                                                            
-                                                            MouseArea {
-                                                                anchors.fill: parent
-                                                                cursorShape: Qt.PointingHandCursor
-                                                                onClicked: deleteTodo(model.id)
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        // Input Field
-                                        Rectangle {
-                                            Layout.fillWidth: true
-                                            Layout.preferredHeight: 26
-                                            color: theme.bg0
-                                            radius: 6
-                                            border.color: todoInput.activeFocus ? theme.yellow : theme.bg1
-                                            border.width: 1
-                                            
-                                            TextInput {
-                                                id: todoInput
-                                                anchors.fill: parent
-                                                anchors.leftMargin: 6
-                                                anchors.rightMargin: 6
-                                                verticalAlignment: TextInput.AlignVCenter
-                                                color: theme.fg1
-                                                font.pixelSize: 12
-                                                font.family: "Monospace"
-                                                selectByMouse: true
-                                                
-                                                Text {
-                                                    text: "新しいタスクを入力..."
-                                                    color: theme.fg4
-                                                    font.pixelSize: 12
-                                                    font.family: "Monospace"
-                                                    visible: !parent.text && !parent.activeFocus
-                                                    anchors.fill: parent
-                                                    verticalAlignment: Text.AlignVCenter
-                                                }
-                                                
-                                                onAccepted: {
-                                                    if (text.trim() !== "") {
-                                                        addTodo(text.trim())
-                                                        text = ""
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // Card 6: TOP PROCESSES
-                                Rectangle {
-                                    Layout.preferredWidth: 200
-                                    Layout.fillHeight: true
-                                    color: theme.bg0_soft
-                                    radius: 8
-                                    border.color: theme.bg1
-                                    border.width: 1
-
-                                    ColumnLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        spacing: 6
-
-                                        Text {
-                                            text: "TOP PROCESSES"
-                                            color: theme.fg4
-                                            font.pixelSize: 10
-                                            font.bold: true
-                                            font.family: "Monospace"
-                                        }
-
-                                        ColumnLayout {
-                                            Layout.fillWidth: true
-                                            Layout.fillHeight: true
-                                            spacing: 4
-
-                                            Repeater {
-                                                model: procModel
-                                                delegate: RowLayout {
+                                                Rectangle {
                                                     Layout.fillWidth: true
+                                                    height: 20
+                                                    color: theme.bg0
+                                                    radius: 4
+                                                    border.color: eventInput.activeFocus ? theme.orange : theme.bg1
+                                                    border.width: 1
                                                     
-                                                    Text {
-                                                        text: model.name
-                                                        color: theme.fg2
-                                                        font.pixelSize: 10
+                                                    TextInput {
+                                                        id: eventInput
+                                                        anchors.left: parent.left
+                                                        anchors.top: parent.top
+                                                        anchors.bottom: parent.bottom
+                                                        anchors.right: parent.right
+                                                        anchors.leftMargin: 6
+                                                        anchors.rightMargin: clearBtn.visible ? 20 : 6
+                                                        verticalAlignment: TextInput.AlignVCenter
+                                                        color: theme.fg1
+                                                        font.pixelSize: 9
                                                         font.family: "Monospace"
-                                                        elide: Text.ElideRight
-                                                        Layout.fillWidth: true
+                                                        selectByMouse: true
+                                                        text: selectedDateNote
+                                                        
+                                                        Text {
+                                                            text: "予定なし"
+                                                            color: theme.fg4
+                                                            font.pixelSize: 9
+                                                            font.family: "Monospace"
+                                                            visible: !parent.text && !parent.activeFocus
+                                                            anchors.fill: parent
+                                                            verticalAlignment: Text.AlignVCenter
+                                                        }
+                                                        
+                                                        onAccepted: {
+                                                            saveCalendarEvent(selectedDateStr, text.trim())
+                                                            focus = false
+                                                        }
                                                     }
                                                     
-                                                    Text {
-                                                        text: "CPU " + model.cpu.toFixed(0) + "%"
-                                                        color: model.cpu > 50.0 ? theme.red : theme.fg3
-                                                        font.pixelSize: 10
-                                                        font.family: "Monospace"
-                                                        Layout.preferredWidth: 55
-                                                        horizontalAlignment: Text.AlignRight
-                                                    }
-                                                    
-                                                    Text {
-                                                        text: "MEM " + model.mem.toFixed(0) + "%"
-                                                        color: theme.fg4
-                                                        font.pixelSize: 10
-                                                        font.family: "Monospace"
-                                                        Layout.preferredWidth: 55
-                                                        horizontalAlignment: Text.AlignRight
+                                                    Item {
+                                                        id: clearBtn
+                                                        anchors.right: parent.right
+                                                        anchors.top: parent.top
+                                                        anchors.bottom: parent.bottom
+                                                        width: 20
+                                                        visible: eventInput.text !== ""
+                                                        
+                                                        Text {
+                                                            anchors.centerIn: parent
+                                                            text: "×"
+                                                            color: theme.red
+                                                            font.pixelSize: 11
+                                                            font.bold: true
+                                                        }
+                                                        
+                                                        MouseArea {
+                                                            anchors.fill: parent
+                                                            cursorShape: Qt.PointingHandCursor
+                                                            onClicked: {
+                                                                eventInput.text = ""
+                                                                saveCalendarEvent(selectedDateStr, "")
+                                                                eventInput.focus = false
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
-                                            Item { Layout.fillHeight: true } // spacer
                                         }
                                     }
                                 }
                             }
 
-                            // Card 7: ACTIVITY MONITOR (GitHub Contributions Style)
+                            // Card 5: TO-DO MEMO
                             Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 130
+                                Layout.preferredWidth: 200
+                                Layout.fillHeight: true
                                 color: theme.bg0_soft
                                 radius: 8
                                 border.color: theme.bg1
                                 border.width: 1
-                                
+
                                 ColumnLayout {
                                     anchors.fill: parent
                                     anchors.margins: 10
-                                    spacing: 4
-                                    
+                                    spacing: 6
+
                                     RowLayout {
                                         Layout.fillWidth: true
                                         Text {
-                                            text: "ACTIVITY MONITOR"
+                                            text: "TO-DO MEMO"
                                             color: theme.fg4
                                             font.pixelSize: 10
                                             font.bold: true
                                             font.family: "Monospace"
                                         }
                                         Item { Layout.fillWidth: true }
-                                        // Legend
-                                        RowLayout {
-                                            spacing: 3
-                                            Text { text: "Less"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace" }
-                                            Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(0); border.color: theme.bg1; border.width: 0.5 }
-                                            Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(1); border.color: theme.bg1; border.width: 0.5 }
-                                            Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(2); border.color: theme.bg1; border.width: 0.5 }
-                                            Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(3); border.color: theme.bg1; border.width: 0.5 }
-                                            Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(4); border.color: theme.bg1; border.width: 0.5 }
-                                            Text { text: "More"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace" }
-                                        }
-                                    }
-                                    
-                                    Item {
-                                        Layout.fillWidth: true
-                                        Layout.fillHeight: true
                                         
-                                        RowLayout {
-                                            anchors.centerIn: parent
-                                            spacing: 6
+                                        // CLEAR Button
+                                        Item {
+                                            width: 50
+                                            height: 18
                                             
-                                            // Day labels
-                                            ColumnLayout {
-                                                spacing: 2
-                                                Layout.alignment: Qt.AlignVCenter
-                                                Text { text: "日"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
-                                                Item { Layout.preferredHeight: 8 }
-                                                Text { text: "火"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
-                                                Item { Layout.preferredHeight: 8 }
-                                                Text { text: "木"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
-                                                Item { Layout.preferredHeight: 8 }
-                                                Text { text: "土"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: "✓ CLEAR"
+                                                color: theme.red
+                                                font.pixelSize: 9
+                                                font.bold: true
+                                                font.family: "Monospace"
                                             }
                                             
-                                            // Contributions Grid
-                                            Grid {
-                                                columns: 35
-                                                rows: 7
-                                                flow: Grid.TopToBottom
-                                                spacing: 2
-                                                Layout.alignment: Qt.AlignVCenter
-                                                
-                                                Repeater {
-                                                    model: uptimeModel
-                                                    delegate: Rectangle {
-                                                        width: 8
-                                                        height: 8
-                                                        radius: 1.5
-                                                        color: getContributionColor(model.level)
-                                                        border.color: model.level === -1 ? "transparent" : theme.bg1
-                                                        border.width: 0.5
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: clearCompletedTodos()
+                                            }
+                                        }
+                                    }
+
+                                    // Todo List
+                                    ScrollView {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        clip: true
+                                        
+                                        ColumnLayout {
+                                            width: parent.availableWidth
+                                            spacing: 4
+                                            
+                                            Repeater {
+                                                model: todoModel
+                                                delegate: RowLayout {
+                                                    Layout.fillWidth: true
+                                                    Layout.rightMargin: 6
+                                                    spacing: 6
+                                                    
+                                                    Item {
+                                                        width: 16
+                                                        height: 16
+                                                        
+                                                        Rectangle {
+                                                            anchors.centerIn: parent
+                                                            width: 12; height: 12; radius: 2
+                                                            color: model.completed ? theme.green : "transparent"
+                                                            border.color: model.completed ? theme.green : (model.priority === 3 ? theme.red : (model.priority === 2 ? theme.yellow : (model.priority === 1 ? theme.blue : theme.fg4)))
+                                                            border.width: 1
+                                                            
+                                                            Text {
+                                                                anchors.centerIn: parent
+                                                                text: model.completed ? "✓" : ""
+                                                                color: theme.bg0_soft
+                                                                font.bold: true
+                                                                font.pixelSize: 9
+                                                            }
+                                                        }
+
+                                                        MouseArea {
+                                                            anchors.fill: parent
+                                                            cursorShape: Qt.PointingHandCursor
+                                                            onClicked: toggleTodo(model.id)
+                                                        }
+                                                    }
+
+                                                    Text {
+                                                        text: model.text
+                                                        color: model.completed ? theme.fg4 : theme.fg1
+                                                        font.pixelSize: 10
+                                                        font.family: "Monospace"
+                                                        font.strikeout: model.completed
+                                                        elide: Text.ElideRight
+                                                        Layout.fillWidth: true
                                                         
                                                         MouseArea {
-                                                            id: ma
                                                             anchors.fill: parent
-                                                            hoverEnabled: true
-                                                            
-                                                            ToolTip.visible: containsMouse && model.level !== -1
-                                                            ToolTip.delay: 200
-                                                            ToolTip.text: {
-                                                                let hrs = (model.seconds / 3600).toFixed(1);
-                                                                return model.date + ": " + hrs + "時間 稼働";
-                                                            }
+                                                            cursorShape: Qt.PointingHandCursor
+                                                            onClicked: toggleTodo(model.id)
+                                                        }
+                                                    }
+                                                    
+                                                    Item {
+                                                        width: 16
+                                                        height: 16
+                                                        
+                                                        Text {
+                                                            anchors.centerIn: parent
+                                                            text: "×"
+                                                            color: theme.red
+                                                            font.bold: true
+                                                            font.pixelSize: 11
+                                                        }
+                                                        
+                                                        MouseArea {
+                                                            anchors.fill: parent
+                                                            cursorShape: Qt.PointingHandCursor
+                                                            onClicked: deleteTodo(model.id)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Input Field
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 22
+                                        color: theme.bg0
+                                        radius: 4
+                                        border.color: todoInput.activeFocus ? theme.yellow : theme.bg1
+                                        border.width: 1
+                                        
+                                        TextInput {
+                                            id: todoInput
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 6
+                                            anchors.rightMargin: 6
+                                            verticalAlignment: TextInput.AlignVCenter
+                                            color: theme.fg1
+                                            font.pixelSize: 10
+                                            font.family: "Monospace"
+                                            selectByMouse: true
+                                            
+                                            Text {
+                                                text: "新しいタスクを入力..."
+                                                color: theme.fg4
+                                                font.pixelSize: 10
+                                                font.family: "Monospace"
+                                                visible: !parent.text && !parent.activeFocus
+                                                anchors.fill: parent
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
+                                            
+                                            onAccepted: {
+                                                if (text.trim() !== "") {
+                                                    addTodo(text.trim())
+                                                    text = ""
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Card 6: TOP PROCESSES
+                            Rectangle {
+                                Layout.preferredWidth: 200
+                                Layout.fillHeight: true
+                                color: theme.bg0_soft
+                                radius: 8
+                                border.color: theme.bg1
+                                border.width: 1
+
+                                ColumnLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 10
+                                    spacing: 6
+
+                                    Text {
+                                        text: "TOP PROCESSES"
+                                        color: theme.fg4
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        font.family: "Monospace"
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        spacing: 4
+
+                                        Repeater {
+                                            model: procModel
+                                            delegate: RowLayout {
+                                                Layout.fillWidth: true
+                                                
+                                                Text {
+                                                    text: model.name
+                                                    color: theme.fg2
+                                                    font.pixelSize: 10
+                                                    font.family: "Monospace"
+                                                    elide: Text.ElideRight
+                                                    Layout.fillWidth: true
+                                                }
+                                                
+                                                Text {
+                                                    text: "CPU " + model.cpu.toFixed(0) + "%"
+                                                    color: model.cpu > 50.0 ? theme.red : theme.fg3
+                                                    font.pixelSize: 10
+                                                    font.family: "Monospace"
+                                                    Layout.preferredWidth: 55
+                                                    horizontalAlignment: Text.AlignRight
+                                                }
+                                                
+                                                Text {
+                                                    text: "MEM " + model.mem.toFixed(0) + "%"
+                                                    color: theme.fg4
+                                                    font.pixelSize: 10
+                                                    font.family: "Monospace"
+                                                    Layout.preferredWidth: 55
+                                                    horizontalAlignment: Text.AlignRight
+                                                }
+                                            }
+                                        }
+                                        Item { Layout.fillHeight: true } // spacer
+                                    }
+                                }
+                            }
+                        }
+
+                        // ROW 2: ACTIVITY MONITOR (GitHub Contributions Style)
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 100
+                            color: theme.bg0_soft
+                            radius: 8
+                            border.color: theme.bg1
+                            border.width: 1
+                            
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: 10
+                                spacing: 4
+                                
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    Text {
+                                        text: "ACTIVITY MONITOR"
+                                        color: theme.fg4
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        font.family: "Monospace"
+                                    }
+                                    Item { Layout.fillWidth: true }
+                                    // Legend
+                                    RowLayout {
+                                        spacing: 3
+                                        Text { text: "Less"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace" }
+                                        Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(0); border.color: theme.bg1; border.width: 0.5 }
+                                        Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(1); border.color: theme.bg1; border.width: 0.5 }
+                                        Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(2); border.color: theme.bg1; border.width: 0.5 }
+                                        Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(3); border.color: theme.bg1; border.width: 0.5 }
+                                        Rectangle { width: 8; height: 8; radius: 1.5; color: getContributionColor(4); border.color: theme.bg1; border.width: 0.5 }
+                                        Text { text: "More"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace" }
+                                    }
+                                }
+                                
+                                Item {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 6
+                                        
+                                        // Day labels
+                                        ColumnLayout {
+                                            spacing: 3
+                                            Layout.alignment: Qt.AlignVCenter
+                                            Text { text: "日"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
+                                            Item { Layout.preferredHeight: 8 }
+                                            Text { text: "火"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
+                                            Item { Layout.preferredHeight: 8 }
+                                            Text { text: "木"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
+                                            Item { Layout.preferredHeight: 8 }
+                                            Text { text: "土"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.preferredHeight: 8; verticalAlignment: Text.AlignVCenter }
+                                        }
+                                        
+                                        // Contributions Grid
+                                        Grid {
+                                            columns: 53
+                                            rows: 7
+                                            flow: Grid.TopToBottom
+                                            spacing: 3
+                                            Layout.alignment: Qt.AlignVCenter
+                                            
+                                            Repeater {
+                                                model: uptimeModel
+                                                delegate: Rectangle {
+                                                    width: 8
+                                                    height: 8
+                                                    radius: 1.5
+                                                    color: getContributionColor(model.level)
+                                                    border.color: model.level === -1 ? "transparent" : theme.bg1
+                                                    border.width: 0.5
+                                                    
+                                                    MouseArea {
+                                                        id: ma
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        
+                                                        ToolTip.visible: containsMouse && model.level !== -1
+                                                        ToolTip.delay: 200
+                                                        ToolTip.text: {
+                                                            let hrs = (model.seconds / 3600).toFixed(1);
+                                                            return model.date + ": " + hrs + "時間 稼働";
                                                         }
                                                     }
                                                 }

@@ -114,14 +114,14 @@ def get_cpu_temp():
 def get_top_processes():
     try:
         out = subprocess.check_output(['ps', '-ao', 'comm,%cpu,%mem', '--sort=-%cpu'], text=True)
-        lines = out.strip().split('\n')[1:4] # Skip header, take top 3
+        lines = out.strip().split('\n')[1:5] # Take top 4 processes
         procs = []
         for line in lines:
             parts = line.split()
             if len(parts) >= 3:
-                name = parts[0]
-                cpu = float(parts[1])
-                mem = float(parts[2])
+                name = " ".join(parts[:-2])
+                cpu = float(parts[-2])
+                mem = float(parts[-1])
                 procs.append({'name': name, 'cpu': cpu, 'mem': mem})
         return procs
     except Exception:
