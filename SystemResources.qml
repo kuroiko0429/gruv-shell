@@ -62,7 +62,7 @@ PanelWindow {
     }
 
     // Weather values
-    property string weatherEmoji: "☀️"
+    property string weatherEmoji: "󰖙"
     property real weatherTemp: 0.0
     property string weatherCity: "Loading..."
     property string weatherDesc: "Loading..."
@@ -860,157 +860,79 @@ PanelWindow {
                                     }
                                 }
 
-                                RowLayout {
+                                ColumnLayout {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
-                                    spacing: 12
+                                    spacing: 6
+                                    Layout.alignment: Qt.AlignVCenter
 
-                                    // Left: 2x3 Grid of 6 Toggles
-                                    Grid {
-                                        columns: 2
-                                        spacing: 5
-                                        Layout.alignment: Qt.AlignVCenter
-
-                                        // Wi-Fi
-                                        Rectangle {
-                                            width: 26; height: 26; radius: 13
-                                            color: resourcesWindow.wifiEnabled ? theme.blue : theme.bg0
-                                            border.color: theme.bg1; border.width: 1
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: resourcesWindow.wifiEnabled ? "󰤨" : "󰤭"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                font.pixelSize: 11
-                                                color: resourcesWindow.wifiEnabled ? theme.bg0_hard : theme.fg4
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: resourcesWindow.toggleWifi()
-                                            }
-                                        }
-
-                                        // Bluetooth
-                                        Rectangle {
-                                            width: 26; height: 26; radius: 13
-                                            color: resourcesWindow.bluetoothEnabled ? theme.purple : theme.bg0
-                                            border.color: theme.bg1; border.width: 1
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: resourcesWindow.bluetoothEnabled ? "󰂯" : "󰂲"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                font.pixelSize: 11
-                                                color: resourcesWindow.bluetoothEnabled ? theme.bg0_hard : theme.fg4
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: resourcesWindow.toggleBluetooth()
-                                            }
-                                        }
-
-                                        // Audio Mute
-                                        Rectangle {
-                                            width: 26; height: 26; radius: 13
-                                            color: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? theme.red : theme.green
-                                            border.color: theme.bg1; border.width: 1
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? "󰝟" : "󰓃"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                font.pixelSize: 11
-                                                color: theme.bg0_hard
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: resourcesWindow.toggleAudioMute()
-                                            }
-                                        }
-
-                                        // Mic Mute
-                                        Rectangle {
-                                            width: 26; height: 26; radius: 13
-                                            color: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? theme.red : theme.yellow
-                                            border.color: theme.bg1; border.width: 1
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? "󰍭" : "󰍬"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                font.pixelSize: 11
-                                                color: theme.bg0_hard
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: resourcesWindow.toggleMicMute()
-                                            }
-                                        }
-
-                                        // DND
-                                        Rectangle {
-                                            width: 26; height: 26; radius: 13
-                                            color: shellRoot.dndEnabled ? theme.orange : theme.bg0
-                                            border.color: theme.bg1; border.width: 1
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "󰂛"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                font.pixelSize: 11
-                                                color: shellRoot.dndEnabled ? theme.bg0_hard : theme.fg4
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: resourcesWindow.toggleDnd()
-                                            }
-                                        }
-
-                                        // Night Light
-                                        Rectangle {
-                                            width: 26; height: 26; radius: 13
-                                            color: resourcesWindow.nightLightEnabled ? theme.orange : theme.bg0
-                                            border.color: theme.bg1; border.width: 1
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "󰖔"
-                                                font.family: "JetBrainsMono Nerd Font"
-                                                font.pixelSize: 11
-                                                color: resourcesWindow.nightLightEnabled ? theme.bg0_hard : theme.fg4
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: resourcesWindow.toggleNightLight()
-                                            }
-                                        }
-                                    }
-
-                                    // Right: Stack of 3 Sliders
-                                    ColumnLayout {
+                                    // Row 1: Wi-Fi & Bluetooth + Speaker Volume
+                                    RowLayout {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
-                                        spacing: 6
-                                        Layout.alignment: Qt.AlignVCenter
+                                        spacing: 12
 
-                                        // Slider 1: Speaker Volume
+                                        // Left Toggles
+                                        RowLayout {
+                                            spacing: 5
+                                            
+                                            // Wi-Fi
+                                            Rectangle {
+                                                width: 26; height: 26; radius: 13
+                                                color: resourcesWindow.wifiEnabled ? theme.blue : theme.bg0
+                                                border.color: theme.bg1; border.width: 1
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: resourcesWindow.wifiEnabled ? "󰤨" : "󰤭"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    font.pixelSize: 11
+                                                    color: resourcesWindow.wifiEnabled ? theme.bg0_hard : theme.fg4
+                                                }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: resourcesWindow.toggleWifi()
+                                                }
+                                            }
+
+                                            // Bluetooth
+                                            Rectangle {
+                                                width: 26; height: 26; radius: 13
+                                                color: resourcesWindow.bluetoothEnabled ? theme.purple : theme.bg0
+                                                border.color: theme.bg1; border.width: 1
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: resourcesWindow.bluetoothEnabled ? "󰂯" : "󰂲"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    font.pixelSize: 11
+                                                    color: resourcesWindow.bluetoothEnabled ? theme.bg0_hard : theme.fg4
+                                                }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: resourcesWindow.toggleBluetooth()
+                                                }
+                                            }
+                                        }
+
+                                        // Right Slider (Speaker Volume)
                                         RowLayout {
                                             Layout.fillWidth: true
-                                            spacing: 4
+                                            spacing: 8
 
                                             Text {
                                                 text: "󰓃"
                                                 font.family: "JetBrainsMono Nerd Font"
                                                 color: theme.fg2
-                                                font.pixelSize: 11
-                                                Layout.preferredWidth: 11
+                                                font.pixelSize: 13
+                                                Layout.preferredWidth: 13
                                             }
 
                                             Rectangle {
                                                 id: ccVolTrack
                                                 Layout.fillWidth: true
-                                                height: 4
-                                                radius: 2
+                                                height: 6
+                                                radius: 3
                                                 color: theme.bg0
                                                 border.color: theme.bg1; border.width: 1
 
@@ -1023,16 +945,16 @@ PanelWindow {
                                                 Rectangle {
                                                     height: parent.height
                                                     width: parent.width * parent.volRatio
-                                                    radius: 2
+                                                    radius: 3
                                                     color: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? theme.gray : theme.orange
                                                 }
 
                                                 Rectangle {
                                                     x: (parent.width * parent.volRatio) - (width / 2)
                                                     y: (parent.height / 2) - (height / 2)
-                                                    width: 6; height: 6; radius: 3
+                                                    width: 10; height: 10; radius: 5
                                                     color: ccVolMa.containsMouse ? theme.fg1 : theme.fg3
-                                                    border.color: theme.bg0_hard; border.width: 1
+                                                    border.color: theme.bg0_hard; border.width: 1.5
                                                 }
 
                                                 MouseArea {
@@ -1067,32 +989,82 @@ PanelWindow {
                                                     return Math.round(sink.audio.volume * 100) + "%"
                                                 }
                                                 color: theme.fg3
-                                                font.pixelSize: 8
+                                                font.pixelSize: 10
                                                 font.bold: true
                                                 font.family: "Monospace"
-                                                Layout.preferredWidth: 20
+                                                Layout.preferredWidth: 28
                                                 horizontalAlignment: Text.AlignRight
                                             }
                                         }
+                                    }
 
-                                        // Slider 2: Mic Volume
+                                    // Row 2: Audio/Mic Mute + Mic Volume
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        spacing: 12
+
+                                        // Left Toggles
+                                        RowLayout {
+                                            spacing: 5
+
+                                            // Audio Mute
+                                            Rectangle {
+                                                width: 26; height: 26; radius: 13
+                                                color: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? theme.red : theme.green
+                                                border.color: theme.bg1; border.width: 1
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: (resourcesWindow.audioSink && resourcesWindow.audioSink.audio && resourcesWindow.audioSink.audio.muted) ? "󰝟" : "󰓃"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    font.pixelSize: 11
+                                                    color: theme.bg0_hard
+                                                }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: resourcesWindow.toggleAudioMute()
+                                                }
+                                            }
+
+                                            // Mic Mute
+                                            Rectangle {
+                                                width: 26; height: 26; radius: 13
+                                                color: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? theme.red : theme.yellow
+                                                border.color: theme.bg1; border.width: 1
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? "󰍭" : "󰍬"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    font.pixelSize: 11
+                                                    color: theme.bg0_hard
+                                                }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: resourcesWindow.toggleMicMute()
+                                                }
+                                            }
+                                        }
+
+                                        // Right Slider (Mic Volume)
                                         RowLayout {
                                             Layout.fillWidth: true
-                                            spacing: 4
+                                            spacing: 8
 
                                             Text {
                                                 text: "󰍬"
                                                 font.family: "JetBrainsMono Nerd Font"
                                                 color: theme.fg2
-                                                font.pixelSize: 11
-                                                Layout.preferredWidth: 11
+                                                font.pixelSize: 13
+                                                Layout.preferredWidth: 13
                                             }
 
                                             Rectangle {
                                                 id: micTrack
                                                 Layout.fillWidth: true
-                                                height: 4
-                                                radius: 2
+                                                height: 6
+                                                radius: 3
                                                 color: theme.bg0
                                                 border.color: theme.bg1; border.width: 1
 
@@ -1105,16 +1077,16 @@ PanelWindow {
                                                 Rectangle {
                                                     height: parent.height
                                                     width: parent.width * parent.ratio
-                                                    radius: 2
+                                                    radius: 3
                                                     color: (resourcesWindow.audioSource && resourcesWindow.audioSource.audio && resourcesWindow.audioSource.audio.muted) ? theme.gray : theme.aqua
                                                 }
 
                                                 Rectangle {
                                                     x: (parent.width * parent.ratio) - (width / 2)
                                                     y: (parent.height / 2) - (height / 2)
-                                                    width: 6; height: 6; radius: 3
+                                                    width: 10; height: 10; radius: 5
                                                     color: micMa.containsMouse ? theme.fg1 : theme.fg3
-                                                    border.color: theme.bg0_hard; border.width: 1
+                                                    border.color: theme.bg0_hard; border.width: 1.5
                                                 }
 
                                                 MouseArea {
@@ -1149,32 +1121,82 @@ PanelWindow {
                                                     return Math.round(source.audio.volume * 100) + "%"
                                                 }
                                                 color: theme.fg3
-                                                font.pixelSize: 8
+                                                font.pixelSize: 10
                                                 font.bold: true
                                                 font.family: "Monospace"
-                                                Layout.preferredWidth: 20
+                                                Layout.preferredWidth: 28
                                                 horizontalAlignment: Text.AlignRight
                                             }
                                         }
+                                    }
 
-                                        // Slider 3: Brightness
+                                    // Row 3: DND & Night Light + Brightness
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        spacing: 12
+
+                                        // Left Toggles
+                                        RowLayout {
+                                            spacing: 5
+
+                                            // DND
+                                            Rectangle {
+                                                width: 26; height: 26; radius: 13
+                                                color: shellRoot.dndEnabled ? theme.orange : theme.bg0
+                                                border.color: theme.bg1; border.width: 1
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "󰂛"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    font.pixelSize: 11
+                                                    color: shellRoot.dndEnabled ? theme.bg0_hard : theme.fg4
+                                                }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: resourcesWindow.toggleDnd()
+                                                }
+                                            }
+
+                                            // Night Light
+                                            Rectangle {
+                                                width: 26; height: 26; radius: 13
+                                                color: resourcesWindow.nightLightEnabled ? theme.orange : theme.bg0
+                                                border.color: theme.bg1; border.width: 1
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "󰖔"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    font.pixelSize: 11
+                                                    color: resourcesWindow.nightLightEnabled ? theme.bg0_hard : theme.fg4
+                                                }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: resourcesWindow.toggleNightLight()
+                                                }
+                                            }
+                                        }
+
+                                        // Right Slider (Brightness)
                                         RowLayout {
                                             Layout.fillWidth: true
-                                            spacing: 4
+                                            spacing: 8
 
                                             Text {
                                                 text: "󰖨"
                                                 font.family: "JetBrainsMono Nerd Font"
                                                 color: theme.fg2
-                                                font.pixelSize: 11
-                                                Layout.preferredWidth: 11
+                                                font.pixelSize: 13
+                                                Layout.preferredWidth: 13
                                             }
 
                                             Rectangle {
                                                 id: ccBriTrack
                                                 Layout.fillWidth: true
-                                                height: 4
-                                                radius: 2
+                                                height: 6
+                                                radius: 3
                                                 color: theme.bg0
                                                 border.color: theme.bg1; border.width: 1
 
@@ -1183,16 +1205,16 @@ PanelWindow {
                                                 Rectangle {
                                                     height: parent.height
                                                     width: parent.width * parent.briRatio
-                                                    radius: 2
+                                                    radius: 3
                                                     color: theme.bg1
                                                 }
 
                                                 Rectangle {
                                                     x: (parent.width * parent.briRatio) - (width / 2)
                                                     y: (parent.height / 2) - (height / 2)
-                                                    width: 6; height: 6; radius: 3
+                                                    width: 10; height: 10; radius: 5
                                                     color: ccBriMa.containsMouse ? theme.fg1 : theme.fg3
-                                                    border.color: theme.bg0_hard; border.width: 1
+                                                    border.color: theme.bg0_hard; border.width: 1.5
                                                 }
 
                                                 MouseArea {
@@ -1216,10 +1238,10 @@ PanelWindow {
                                             Text {
                                                 text: resourcesWindow.brightnessVal + "%"
                                                 color: theme.fg3
-                                                font.pixelSize: 8
+                                                font.pixelSize: 10
                                                 font.bold: true
                                                 font.family: "Monospace"
-                                                Layout.preferredWidth: 20
+                                                Layout.preferredWidth: 28
                                                 horizontalAlignment: Text.AlignRight
                                             }
                                         }
@@ -1433,8 +1455,15 @@ PanelWindow {
                                                 Layout.alignment: Qt.AlignHCenter
                                                 Text {
                                                     text: weatherEmoji
+                                                    font.family: "JetBrainsMono Nerd Font"
                                                     font.pixelSize: 28
-                                                    color: theme.fg0
+                                                    color: {
+                                                        let code = weatherCode;
+                                                        if (code === 0 || code === 1 || code === 2) return theme.orange;
+                                                        if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82) || code === 95) return theme.aqua;
+                                                        if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return theme.purple;
+                                                        return theme.fg3;
+                                                    }
                                                 }
                                                 Text {
                                                     text: weatherTemp.toFixed(1) + "°C"
@@ -1456,8 +1485,10 @@ PanelWindow {
                                                 spacing: 4
                                                 Layout.alignment: Qt.AlignHCenter
                                                 Text {
-                                                    text: "📍"
-                                                    font.pixelSize: 10
+                                                    text: "󰍎"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    font.pixelSize: 11
+                                                    color: theme.red
                                                 }
                                                 Text {
                                                     text: weatherCity
@@ -1503,9 +1534,10 @@ PanelWindow {
 
                                                     Text {
                                                         anchors.centerIn: parent
-                                                        text: "◀"
+                                                        text: "󰅁"
                                                         color: prevHover.containsMouse ? theme.fg1 : theme.fg4
-                                                        font.pixelSize: 11
+                                                        font.family: "JetBrainsMono Nerd Font"
+                                                        font.pixelSize: 14
                                                     }
 
                                                     MouseArea {
@@ -1535,9 +1567,10 @@ PanelWindow {
 
                                                     Text {
                                                         anchors.centerIn: parent
-                                                        text: "▶"
+                                                        text: "󰅂"
                                                         color: nextHover.containsMouse ? theme.fg1 : theme.fg4
-                                                        font.pixelSize: 11
+                                                        font.family: "JetBrainsMono Nerd Font"
+                                                        font.pixelSize: 14
                                                     }
 
                                                     MouseArea {
@@ -1659,12 +1692,21 @@ PanelWindow {
                                             Layout.fillWidth: true
                                             spacing: 8
                                             
-                                            Text {
-                                                text: "📅 " + selectedDateLabel + " 予定:"
-                                                color: theme.fg2
-                                                font.pixelSize: 12
-                                                font.bold: true
-                                                font.family: "Monospace"
+                                            RowLayout {
+                                                spacing: 4
+                                                Text {
+                                                    text: "󰃭"
+                                                    font.family: "JetBrainsMono Nerd Font"
+                                                    color: theme.orange
+                                                    font.pixelSize: 13
+                                                }
+                                                Text {
+                                                    text: selectedDateLabel + " 予定:"
+                                                    color: theme.fg2
+                                                    font.pixelSize: 12
+                                                    font.bold: true
+                                                    font.family: "Monospace"
+                                                }
                                             }
                                             
                                             Rectangle {

@@ -1,0 +1,15 @@
+{
+  "use_ip_geolocation": false,
+  "default_location": {
+    "city": "江別市, 北海道",
+    "lat": 43.1081,
+    "lon": 141.5506
+  },
+  "wifi_locations": {
+    "Buffalo-5G-6700": {
+      "city": "江別市, 北海道",
+      "lat": 43.1081,
+      "lon": 141.5506
+    }
+  }
+}
