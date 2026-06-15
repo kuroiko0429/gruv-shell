@@ -747,6 +747,7 @@ PanelWindow {
                         // Card 1: SYSTEM STATUS
                         Rectangle {
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             Layout.preferredHeight: 125
                             color: theme.bg0_soft
                             radius: 8
@@ -769,63 +770,63 @@ PanelWindow {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
-                                    spacing: 16
+                                    spacing: 10
                                     Layout.alignment: Qt.AlignHCenter
 
                                     // CPU Circle
                                     Item {
-                                        width: 72; height: 72
+                                        width: 84; height: 84
                                         ProgressCircle {
                                             anchors.fill: parent
                                             value: cpuVal / 100.0
                                             color: theme.blue
                                             bgColor: theme.bg0
-                                            lineWidth: 5
+                                            lineWidth: 8
                                         }
                                         ColumnLayout {
                                             anchors.centerIn: parent
                                             spacing: 0
-                                            Text { text: "CPU"; color: theme.fg2; font.pixelSize: 8; font.bold: true; Layout.alignment: Qt.AlignHCenter }
-                                            Text { text: cpuVal.toFixed(1) + "%"; color: theme.blue; font.pixelSize: 10; font.bold: true; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
-                                            Text { text: cpuTemp + "°C"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: "CPU"; color: theme.fg2; font.pixelSize: 10; font.bold: true; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: cpuVal.toFixed(1) + "%"; color: theme.blue; font.pixelSize: 12; font.bold: true; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: cpuTemp + "°C"; color: theme.fg4; font.pixelSize: 9; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
                                         }
                                     }
 
                                     // RAM Circle
                                     Item {
-                                        width: 72; height: 72
+                                        width: 84; height: 84
                                         ProgressCircle {
                                             anchors.fill: parent
                                             value: ramPercent / 100.0
                                             color: theme.green
                                             bgColor: theme.bg0
-                                            lineWidth: 5
+                                            lineWidth: 8
                                         }
                                         ColumnLayout {
                                             anchors.centerIn: parent
                                             spacing: 0
-                                            Text { text: "RAM"; color: theme.fg2; font.pixelSize: 8; font.bold: true; Layout.alignment: Qt.AlignHCenter }
-                                            Text { text: ramPercent.toFixed(1) + "%"; color: theme.green; font.pixelSize: 10; font.bold: true; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
-                                            Text { text: ramUsed.toFixed(1) + "G/" + ramTotal.toFixed(0) + "G"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: "RAM"; color: theme.fg2; font.pixelSize: 10; font.bold: true; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: ramPercent.toFixed(1) + "%"; color: theme.green; font.pixelSize: 12; font.bold: true; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: ramUsed.toFixed(1) + "G/" + ramTotal.toFixed(0) + "G"; color: theme.fg4; font.pixelSize: 9; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
                                         }
                                     }
 
                                     // DISK Circle
                                     Item {
-                                        width: 72; height: 72
+                                        width: 84; height: 84
                                         ProgressCircle {
                                             anchors.fill: parent
                                             value: diskPercent / 100.0
                                             color: theme.purple
                                             bgColor: theme.bg0
-                                            lineWidth: 5
+                                            lineWidth: 8
                                         }
                                         ColumnLayout {
                                             anchors.centerIn: parent
                                             spacing: 0
-                                            Text { text: "DISK"; color: theme.fg2; font.pixelSize: 8; font.bold: true; Layout.alignment: Qt.AlignHCenter }
-                                            Text { text: diskPercent.toFixed(1) + "%"; color: theme.purple; font.pixelSize: 10; font.bold: true; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
-                                            Text { text: Math.round(diskUsed) + "G/" + Math.round(diskTotal) + "G"; color: theme.fg4; font.pixelSize: 8; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: "DISK"; color: theme.fg2; font.pixelSize: 10; font.bold: true; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: diskPercent.toFixed(1) + "%"; color: theme.purple; font.pixelSize: 12; font.bold: true; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
+                                            Text { text: Math.round(diskUsed) + "G/" + Math.round(diskTotal) + "G"; color: theme.fg4; font.pixelSize: 9; font.family: "Monospace"; Layout.alignment: Qt.AlignHCenter }
                                         }
                                     }
                                 }
@@ -835,6 +836,7 @@ PanelWindow {
                         // Card 2: CONTROL CENTER
                         Rectangle {
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             Layout.preferredHeight: 120
                             color: theme.bg0_soft
                             radius: 8
@@ -1229,6 +1231,7 @@ PanelWindow {
                         // Card 3: MUSIC PLAYER
                         Rectangle {
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             Layout.preferredHeight: 85
                             color: theme.bg0_soft
                             radius: 8
@@ -1988,6 +1991,7 @@ PanelWindow {
                             // Card 7: ACTIVITY MONITOR (GitHub Contributions Style)
                             Rectangle {
                                 Layout.fillWidth: true
+                                Layout.fillHeight: true
                                 Layout.preferredHeight: 130
                                 color: theme.bg0_soft
                                 radius: 8
